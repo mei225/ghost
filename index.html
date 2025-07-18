@@ -48,6 +48,7 @@
     <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-black/50 backdrop-blur-md">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="#home" class="text-3xl font-display text-white tracking-wider">GHOST</a>
+            <!-- Desktop Menu: md(768px) 이상 화면에서 보임 -->
             <div class="hidden md:flex space-x-8">
                 <a href="#about" class="nav-link text-gray-300 hover:text-red-500 transition-colors duration-300">ABOUT</a>
                 <a href="#system" class="nav-link text-gray-300 hover:text-red-500 transition-colors duration-300">SYSTEM</a>
@@ -55,13 +56,14 @@
                 <a href="#youtube" class="nav-link text-gray-300 hover:text-red-500 transition-colors duration-300">YOUTUBE</a>
                 <a href="#recruit" class="nav-link text-gray-300 hover:text-red-500 transition-colors duration-300">RECRUIT</a>
             </div>
+            <!-- Mobile Menu Button: md(768px) 미만 화면에서 보임 -->
             <div class="md:hidden">
                 <button id="mobile-menu-button" class="text-white focus:outline-none">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
                 </button>
             </div>
         </nav>
-        <!-- Mobile Menu -->
+        <!-- Mobile Menu: 버튼 클릭 시 나타남 -->
         <div id="mobile-menu" class="hidden md:hidden px-6 pb-4">
             <a href="#about" class="block py-2 text-gray-300 hover:text-red-500">ABOUT</a>
             <a href="#system" class="block py-2 text-gray-300 hover:text-red-500">SYSTEM</a>
@@ -80,19 +82,22 @@
             </video>
             <div class="absolute top-0 left-0 w-full h-full bg-black opacity-70 z-10"></div>
             <div class="z-20 text-center text-white p-4">
-                <h1 class="font-display text-6xl md:text-8xl lg:text-9xl tracking-wider" style="text-shadow: 0 0 15px rgba(239, 68, 68, 0.5);">Show & Prove</h1>
+                <!-- 반응형 폰트 크기 수정 -->
+                <h1 class="font-display text-5xl sm:text-6xl md:text-8xl lg:text-9xl tracking-wider" style="text-shadow: 0 0 15px rgba(239, 68, 68, 0.5);">Show & Prove</h1>
             </div>
         </section>
 
         <!-- 2. About Us Section -->
         <section id="about" class="py-20 md:py-32">
             <div class="container mx-auto px-6">
-                <div class="reveal text-center mb-16">
-                    <h2 class="font-display text-5xl md:text-7xl text-white">ABOUT GHOST</h2>
+                <div class="reveal text-center mb-12 md:mb-16">
+                    <!-- 반응형 폰트 크기 수정 -->
+                    <h2 class="font-display text-4xl sm:text-5xl md:text-7xl text-white">ABOUT GHOST</h2>
                     <div class="w-24 h-1 bg-red-500 mx-auto mt-4"></div>
                 </div>
-                <div class="reveal grid md:grid-cols-2 gap-16 items-center">
-                    <div class="w-full h-80 rounded-lg overflow-hidden">
+                <!-- md 이상 화면에서 2단 그리드, 모바일에서는 1단으로 자동 변경 -->
+                <div class="reveal grid md:grid-cols-2 gap-12 md:gap-16 items-center">
+                    <div class="w-full h-64 sm:h-80 rounded-lg overflow-hidden">
                          <img src="https://placehold.co/800x600/1a1a1a/e5e5e5?text=GHOST" alt="동아리 로고 또는 사진" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://placehold.co/800x600/1a1a1a/e5e5e5?text=Image+Not+Found';">
                     </div>
                     <div>
@@ -111,12 +116,14 @@
         <!-- 3. Our System Section -->
         <section id="system" class="py-20 md:py-32 bg-gray-900/50">
             <div class="container mx-auto px-6">
-                <div class="reveal text-center mb-16">
-                    <h2 class="font-display text-5xl md:text-7xl text-white">OUR SYSTEM</h2>
+                <div class="reveal text-center mb-12 md:mb-16">
+                    <!-- 반응형 폰트 크기 수정 -->
+                    <h2 class="font-display text-4xl sm:text-5xl md:text-7xl text-white">OUR SYSTEM</h2>
                     <div class="w-24 h-1 bg-red-500 mx-auto mt-4"></div>
                      <p class="max-w-2xl mx-auto mt-6 text-gray-400">GHOST는 정해진 틀에 얽매이지 않습니다. 누구나 자유롭게 여러 역할을 넘나들며 자신의 재능을 마음껏 펼칠 수 있습니다.</p>
                 </div>
-                <div class="reveal grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- 화면 크기에 따라 1단, 2단, 4단으로 자동 변경되는 반응형 그리드 -->
+                <div class="reveal grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                     <!-- System Card -->
                     <div class="bg-gray-900 p-8 rounded-lg text-center border-t-4 border-red-500/50 hover:border-red-500 transition-all duration-300">
                         <h3 class="font-display text-3xl text-white">LISTENER</h3>
@@ -144,8 +151,9 @@
         <!-- 4. Works Section -->
         <section id="works" class="py-20 md:py-32">
             <div class="container mx-auto px-6">
-                <div class="reveal text-center mb-16">
-                    <h2 class="font-display text-5xl md:text-7xl text-white">ALBUMS & WORKS</h2>
+                <div class="reveal text-center mb-12 md:mb-16">
+                    <!-- 반응형 폰트 크기 수정 -->
+                    <h2 class="font-display text-4xl sm:text-5xl md:text-7xl text-white">ALBUMS & WORKS</h2>
                     <div class="w-24 h-1 bg-red-500 mx-auto mt-4"></div>
                 </div>
                 <div class="reveal grid md:grid-cols-2 gap-12">
@@ -186,19 +194,22 @@
         <!-- 5. YouTube Section -->
         <section id="youtube" class="py-20 md:py-32 bg-gray-900/50">
             <div class="container mx-auto px-6">
-                <div class="reveal text-center mb-16">
-                    <h2 class="font-display text-5xl md:text-7xl text-white">YOUTUBE</h2>
+                <div class="reveal text-center mb-12 md:mb-16">
+                    <!-- 반응형 폰트 크기 수정 -->
+                    <h2 class="font-display text-4xl sm:text-5xl md:text-7xl text-white">YOUTUBE</h2>
                     <div class="w-24 h-1 bg-red-500 mx-auto mt-4"></div>
                     <p class="max-w-2xl mx-auto mt-6 text-gray-400">우리의 모든 활동은 유튜브에 기록됩니다. 뮤직비디오부터 공연 영상, 멤버들의 소소한 모습까지. 지금 바로 구독하고 GHOST의 모든 것을 만나보세요!</p>
                     <a href="https://www.youtube.com/@GHOST_hiphop" target="_blank" class="inline-block mt-6 bg-red-600 text-white font-bold font-display tracking-wider py-3 px-8 rounded-full hover:bg-red-500 transition-colors">
                         CHANNEL SUBSCRIBE
                     </a>
                 </div>
-                <div class="reveal grid lg:grid-cols-2 gap-8">
-                    <div class="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden shadow-lg shadow-red-500/10">
+                <!-- 모바일에서는 1단, lg(1024px) 이상에서는 2단으로 변경 -->
+                <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-8 lg:max-w-7xl lg:mx-auto">
+                    <!-- 16:9 비율 유지를 위한 aspect-video 클래스 -->
+                    <div class="w-full aspect-video rounded-lg overflow-hidden shadow-lg shadow-red-500/10">
                         <iframe src="https://www.youtube.com/embed/r2qOLeRvAHY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full h-full"></iframe>
                     </div>
-                    <div class="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden shadow-lg shadow-red-500/10">
+                    <div class="w-full aspect-video rounded-lg overflow-hidden shadow-lg shadow-red-500/10">
                         <iframe src="https://www.youtube.com/embed/x__JbF7wNTc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full h-full"></iframe>
                     </div>
                 </div>
@@ -209,7 +220,8 @@
         <section id="recruit" class="py-20 md:py-32">
             <div class="container mx-auto px-6 text-center">
                 <div class="reveal">
-                    <h2 class="font-display text-5xl md:text-7xl text-white">JOIN US</h2>
+                    <!-- 반응형 폰트 크기 수정 -->
+                    <h2 class="font-display text-4xl sm:text-5xl md:text-7xl text-white">JOIN US</h2>
                     <div class="w-24 h-1 bg-red-500 mx-auto mt-4"></div>
                     <p class="max-w-3xl mx-auto mt-6 text-gray-300 leading-relaxed">
                         힙합을 사랑하고, 무대에 대한 열정이 있는 당신을 기다립니다. GHOST의 문은 언제나 열려있습니다. 망설이지 말고 지금 바로 인스타그램 DM으로 당신의 이야기를 들려주세요!
@@ -234,7 +246,6 @@
                     <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M19.812 5.418c.861.23 1.538.907 1.768 1.768C21.998 8.78 22 12 22 12s0 3.22-.42 4.814a2.506 2.506 0 0 1-1.768 1.768c-1.594.42-7.812.42-7.812.42s-6.218 0-7.812-.42a2.506 2.506 0 0 1-1.768-1.768C2.002 15.22 2 12 2 12s0-3.22.42-4.814a2.506 2.506 0 0 1 1.768-1.768C5.782 5 12 5 12 5s6.218 0 7.812.418ZM9.545 15.568V8.432L15.818 12l-6.273 3.568Z" clip-rule="evenodd" /></svg>
                 </a>
                 <a href="https://www.instagram.com/ghost._.hiphop/" target="_blank" class="text-gray-400 hover:text-red-500 transition-colors">
-                    <!-- Instagram Icon SVG 수정 -->
                     <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44 1.441-.645 1.441-1.44-.645-1.44-1.441-1.44z"/></svg>
                 </a>
             </div>
