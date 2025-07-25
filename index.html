@@ -14,58 +14,46 @@
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
 
     <style>
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: #0a0a0a;
-            color: #e5e5e5;
-        }
-        .font-display {
-            font-family: 'Oswald', sans-serif;
-        }
-        .reveal {
-            opacity: 0;
-            transform: translateY(50px);
-            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-        }
-        .reveal.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .nav-link.active {
-            color: #ef4444;
-            text-shadow: 0 0 8px #ef4444;
-        }
-        /* 관리자 모드에서 편집 가능한 요소 스타일 */
-        [contenteditable="true"] {
-            outline: 2px dashed #ef4444;
-            padding: 4px;
-            border-radius: 4px;
-            background-color: rgba(239, 68, 68, 0.1);
-        }
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #0a0a0a; color: #e5e5e5; }
+        .font-display { font-family: 'Oswald', sans-serif; }
+        .reveal { opacity: 0; transform: translateY(50px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        .nav-link.active { color: #ef4444; text-shadow: 0 0 8px #ef4444; }
+        [contenteditable="true"] { outline: 2px dashed #ef4444; padding: 4px; border-radius: 4px; background-color: rgba(239, 68, 68, 0.1); }
+        
+        /* 모달 스타일 */
+        #modal-backdrop { background-color: rgba(0, 0, 0, 0.7); }
     </style>
 </head>
 <body class="bg-black">
 
-    <!-- 관리자 모드 UI 수정 -->
+    <!-- 관리자 모드 UI -->
     <div id="admin-panel" class="fixed bottom-5 right-5 z-50">
-        <button id="admin-login-btn" class="bg-gray-800 text-gray-300 text-sm font-bold py-1 px-3 rounded-full hover:bg-gray-700 transition-all duration-300 opacity-50 hover:opacity-100">
-            Admin
-        </button>
+        <button id="admin-login-btn" class="bg-gray-800 text-gray-300 text-sm font-bold py-1 px-3 rounded-full hover:bg-gray-700 transition-all duration-300 opacity-50 hover:opacity-100">Admin</button>
         <div id="admin-controls" class="hidden space-x-2">
-            <button id="save-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-500 transition-colors">
-                변경사항 저장
-            </button>
-            <button id="admin-logout-btn" class="bg-gray-600 text-white font-bold py-2 px-4 rounded-full hover:bg-gray-500 transition-colors">
-                로그아웃
-            </button>
+            <button id="save-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-500 transition-colors">전체 저장</button>
+            <button id="admin-logout-btn" class="bg-gray-600 text-white font-bold py-2 px-4 rounded-full hover:bg-gray-500 transition-colors">로그아웃</button>
         </div>
     </div>
     
     <!-- 알림 메시지 -->
-    <div id="toast" class="fixed top-5 right-5 bg-green-500 text-white py-2 px-5 rounded-lg shadow-lg opacity-0 transition-opacity duration-300 z-50">
-        저장되었습니다!
-    </div>
+    <div id="toast" class="fixed top-5 right-5 bg-green-500 text-white py-2 px-5 rounded-lg shadow-lg opacity-0 transition-opacity duration-300 z-[60]"></div>
 
+    <!-- 목록 관리 모달 -->
+    <div id="modal-backdrop" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div id="modal" class="bg-gray-800 rounded-lg shadow-xl w-11/12 max-w-2xl p-6 transform transition-all -translate-y-10">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modal-title" class="text-2xl font-bold text-white">목록 수정</h3>
+                <button id="modal-close-btn" class="text-gray-400 hover:text-white">&times;</button>
+            </div>
+            <div id="modal-content" class="max-h-[60vh] overflow-y-auto pr-2">
+                <!-- 동적 컨텐츠가 여기에 삽입됩니다. -->
+            </div>
+            <div id="modal-actions" class="mt-6">
+                <!-- 동적 액션이 여기에 삽입됩니다. -->
+            </div>
+        </div>
+    </div>
 
     <!-- Header & Navigation -->
     <header class="fixed top-0 left-0 right-0 z-40 transition-all duration-300 bg-black/50 backdrop-blur-md">
@@ -114,15 +102,13 @@
                     <div class="w-24 h-1 bg-red-500 mx-auto mt-4"></div>
                 </div>
                 <div class="reveal grid md:grid-cols-2 gap-12 md:gap-16 items-center">
-                    <div class="w-full h-64 sm:h-80 rounded-lg overflow-hidden">
+                    <div class="w-full h-64 sm:h-80 rounded-lg overflow-hidden relative group">
                          <img id="about-image" src="https://placehold.co/800x600/1a1a1a/e5e5e5?text=GHOST" alt="동아리 로고 또는 사진" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://placehold.co/800x600/1a1a1a/e5e5e5?text=Image+Not+Found';">
+                         <button id="edit-about-image-btn" class="absolute top-2 right-2 bg-black/50 text-white text-xs py-1 px-2 rounded hidden group-hover:block">이미지 수정</button>
                     </div>
                     <div>
                         <h3 id="about-subtitle" class="font-display text-3xl text-red-500">WHO WE ARE</h3>
-                        <div id="about-desc" class="mt-4 text-gray-300 leading-relaxed">
-                            <p>'GHOST'는 2019년부터 이어진 '경남대학교 힙합 동아리'입니다. 우리는 매년 다양한 교내외 공연과 꾸준한 앨범 작업을 통해 우리의 존재를 증명하고 있습니다.</p>
-                            <p class="mt-4">단순히 랩을 넘어, 힙합 문화를 사랑하고 즐기는 모든 이들을 위한 열린 공간입니다.</p>
-                        </div>
+                        <div id="about-desc" class="mt-4 text-gray-300 leading-relaxed"></div>
                     </div>
                 </div>
             </div>
@@ -134,11 +120,9 @@
                 <div class="reveal text-center mb-12 md:mb-16">
                     <h2 class="font-display text-4xl sm:text-5xl md:text-7xl text-white">OUR SYSTEM</h2>
                     <div class="w-24 h-1 bg-red-500 mx-auto mt-4"></div>
-                     <p id="system-desc" class="max-w-2xl mx-auto mt-6 text-gray-400">GHOST는 정해진 틀에 얽매이지 않습니다. 누구나 자유롭게 여러 역할을 넘나들며 자신의 재능을 마음껏 펼칠 수 있습니다.</p>
+                     <p id="system-desc" class="max-w-2xl mx-auto mt-6 text-gray-400"></p>
                 </div>
-                <div id="system-cards-container" class="reveal grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                    <!-- 시스템 카드는 JS로 동적 생성됩니다 -->
-                </div>
+                <div id="system-cards-container" class="reveal grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
             </div>
         </section>
 
@@ -151,16 +135,18 @@
                 </div>
                 <div class="reveal grid md:grid-cols-2 gap-12">
                     <div>
-                        <h3 class="font-display text-3xl text-red-500 mb-4">ACTIVITIES</h3>
-                        <div id="activities-container" class="space-y-4">
-                           <!-- 활동 내용은 JS로 동적 생성됩니다 -->
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-display text-3xl text-red-500">ACTIVITIES</h3>
+                            <button data-section="activities" class="edit-list-btn hidden bg-red-600/50 text-white text-xs py-1 px-2 rounded hover:bg-red-600">목록 수정</button>
                         </div>
+                        <div id="activities-container" class="space-y-4"></div>
                     </div>
                     <div>
-                        <h3 class="font-display text-3xl text-red-500 mb-4">RELEASED ALBUMS</h3>
-                        <div id="albums-container" class="space-y-4">
-                            <!-- 앨범 목록은 JS로 동적 생성됩니다 -->
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-display text-3xl text-red-500">RELEASED ALBUMS</h3>
+                            <button data-section="albums" class="edit-list-btn hidden bg-red-600/50 text-white text-xs py-1 px-2 rounded hover:bg-red-600">목록 수정</button>
                         </div>
+                        <div id="albums-container" class="space-y-4"></div>
                     </div>
                 </div>
             </div>
@@ -172,14 +158,15 @@
                 <div class="reveal text-center mb-12 md:mb-16">
                     <h2 class="font-display text-4xl sm:text-5xl md:text-7xl text-white">YOUTUBE</h2>
                     <div class="w-24 h-1 bg-red-500 mx-auto mt-4"></div>
-                    <p id="youtube-desc" class="max-w-2xl mx-auto mt-6 text-gray-400">우리의 모든 활동은 유튜브에 기록됩니다. 뮤직비디오부터 공연 영상, 멤버들의 소소한 모습까지. 지금 바로 구독하고 GHOST의 모든 것을 만나보세요!</p>
-                    <a id="youtube-subscribe-link" href="https://www.youtube.com/@GHOST_hiphop" target="_blank" class="inline-block mt-6 bg-red-600 text-white font-bold font-display tracking-wider py-3 px-8 rounded-full hover:bg-red-500 transition-colors">
+                    <p id="youtube-desc" class="max-w-2xl mx-auto mt-6 text-gray-400"></p>
+                    <a id="youtube-subscribe-link" href="#" target="_blank" class="inline-block mt-6 bg-red-600 text-white font-bold font-display tracking-wider py-3 px-8 rounded-full hover:bg-red-500 transition-colors">
                         CHANNEL SUBSCRIBE
                     </a>
                 </div>
-                <div id="youtube-videos-container" class="reveal grid grid-cols-1 lg:grid-cols-2 gap-8 lg:max-w-7xl lg:mx-auto">
-                    <!-- 유튜브 영상은 JS로 동적 생성됩니다 -->
+                <div class="text-center mb-8">
+                    <button data-section="videos" class="edit-list-btn hidden bg-red-600/50 text-white text-xs py-1 px-2 rounded hover:bg-red-600">영상 목록 수정</button>
                 </div>
+                <div id="youtube-videos-container" class="reveal grid grid-cols-1 lg:grid-cols-2 gap-8 lg:max-w-7xl lg:mx-auto"></div>
             </div>
         </section>
 
@@ -189,15 +176,11 @@
                 <div class="reveal">
                     <h2 class="font-display text-4xl sm:text-5xl md:text-7xl text-white">JOIN US</h2>
                     <div class="w-24 h-1 bg-red-500 mx-auto mt-4"></div>
-                    <p id="recruit-desc" class="max-w-3xl mx-auto mt-6 text-gray-300 leading-relaxed">
-                        힙합을 사랑하고, 무대에 대한 열정이 있는 당신을 기다립니다. GHOST의 문은 언제나 열려있습니다. 망설이지 말고 지금 바로 인스타그램 DM으로 당신의 이야기를 들려주세요!
-                    </p>
-                    <a id="recruit-link" href="https://www.instagram.com/ghost._.hiphop/" target="_blank" class="inline-block mt-10 bg-white text-black font-bold font-display tracking-wider py-4 px-10 rounded-full hover:bg-red-500 hover:text-white transition-colors text-xl">
+                    <p id="recruit-desc" class="max-w-3xl mx-auto mt-6 text-gray-300 leading-relaxed"></p>
+                    <a id="recruit-link" href="#" target="_blank" class="inline-block mt-10 bg-white text-black font-bold font-display tracking-wider py-4 px-10 rounded-full hover:bg-red-500 hover:text-white transition-colors text-xl">
                         INSTAGRAM DM으로 문의하기
                     </a>
-                    <div id="recruit-status" class="mt-8 text-red-500 font-semibold">
-                        <p>신입부원 상시모집</p>
-                    </div>
+                    <div id="recruit-status" class="mt-8 text-red-500 font-semibold"></div>
                 </div>
             </div>
         </section>
@@ -208,49 +191,44 @@
         <div class="container mx-auto px-6 text-center text-gray-400">
             <p class="font-display text-2xl text-white">GHOST</p>
             <div class="flex justify-center space-x-6 my-6">
-                <a id="footer-youtube-link" href="https://www.youtube.com/@GHOST_hiphop" target="_blank" class="hover:text-red-500 transition-colors">
+                <a id="footer-youtube-link" href="#" target="_blank" class="hover:text-red-500 transition-colors">
                     <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M19.812 5.418c.861.23 1.538.907 1.768 1.768C21.998 8.78 22 12 22 12s0 3.22-.42 4.814a2.506 2.506 0 0 1-1.768 1.768c-1.594.42-7.812.42-7.812.42s-6.218 0-7.812-.42a2.506 2.506 0 0 1-1.768-1.768C2.002 15.22 2 12 2 12s0-3.22.42-4.814a2.506 2.506 0 0 1 1.768-1.768C5.782 5 12 5 12 5s6.218 0 7.812.418ZM9.545 15.568V8.432L15.818 12l-6.273 3.568Z" clip-rule="evenodd" /></svg>
                 </a>
-                <a id="footer-instagram-link" href="https://www.instagram.com/ghost._.hiphop/" target="_blank" class="text-gray-400 hover:text-red-500 transition-colors">
+                <a id="footer-instagram-link" href="#" target="_blank" class="text-gray-400 hover:text-red-500 transition-colors">
                     <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44 1.441-.645 1.441-1.44-.645-1.44-1.441-1.44z"/></svg>
                 </a>
             </div>
-            <p id="footer-contact">Contact: DM to Instagram @ghost._.hiphop</p>
-            <p id="footer-copyright" class="mt-4 text-sm text-gray-500">&copy; 2025 Jungmei. All Rights Reserved.</p>
+            <p id="footer-contact"></p>
+            <p id="footer-copyright" class="mt-4 text-sm text-gray-500"></p>
         </div>
     </footer>
 
 
     <!-- Firebase SDK and App Logic -->
     <script type="module">
-        // Firebase SDK 가져오기
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // 중요: 이 설정은 실제 Firebase 프로젝트의 설정으로 교체해야 합니다.
-        // Canvas 환경에서는 __firebase_config 변수가 자동으로 제공됩니다.
+        // 사용자님의 실제 Firebase 프로젝트 설정으로 교체되었습니다.
         const firebaseConfig = {
-                apiKey: "AIzaSyCLGYYAsOCZNNC-v6I7oHyBxZuFuyGar64",
-                authDomain: "ghost-club-19.firebaseapp.com",
-                projectId: "ghost-club-19",
-                storageBucket: "ghost-club-19.firebasestorage.app",
-                messagingSenderId: "736712179216",
-                appId: "1:736712179216:web:0dfcdc935d8cb09f00d495",
-                measurementId: "G-MFLK8CBYM0"
-            };
+            apiKey: "AIzaSyCLGYYAsOCZNNC-v6I7oHyBxZuFuyGar64",
+            authDomain: "ghost-club-19.firebaseapp.com",
+            projectId: "ghost-club-19",
+            storageBucket: "ghost-club-19.firebasestorage.app",
+            messagingSenderId: "736712179216",
+            appId: "1:736712179216:web:0dfcdc935d8cb09f00d495",
+            measurementId: "G-MFLK8CBYM0"
+        };
 
-        // Firebase 앱 초기화
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-
-        // 데이터베이스 경로 설정
         const contentRef = doc(db, "ghost-homepage", "content");
 
-        // 관리자 모드 상태
         let isAdmin = false;
-        const ADMIN_PASSWORD = "ghost"; // 실제 운영 시에는 더 안전한 인증 방식을 사용해야 합니다.
+        const ADMIN_PASSWORD = "ghost";
+        let pageData = null; // 페이지 전체 데이터를 저장할 변수
 
-        // UI 요소 가져오기
+        // 모든 UI 요소를 객체로 관리
         const elements = {
             homeTitle: document.getElementById('home-title'),
             aboutImage: document.getElementById('about-image'),
@@ -270,84 +248,194 @@
             footerInstagramLink: document.getElementById('footer-instagram-link'),
             footerContact: document.getElementById('footer-contact'),
             footerCopyright: document.getElementById('footer-copyright'),
+            editListBtns: document.querySelectorAll('.edit-list-btn'),
+            editAboutImageBtn: document.getElementById('edit-about-image-btn'),
+            modal: {
+                backdrop: document.getElementById('modal-backdrop'),
+                el: document.getElementById('modal'),
+                title: document.getElementById('modal-title'),
+                content: document.getElementById('modal-content'),
+                actions: document.getElementById('modal-actions'),
+                closeBtn: document.getElementById('modal-close-btn')
+            }
         };
 
-        // Firestore에서 데이터를 불러와 페이지에 채우는 함수
-        function populatePage(data) {
-            elements.homeTitle.innerHTML = data.home.title;
-            elements.aboutImage.src = data.about.imageUrl;
-            elements.aboutSubtitle.innerHTML = data.about.subtitle;
-            elements.aboutDesc.innerHTML = data.about.description;
-            
-            elements.systemDesc.innerHTML = data.system.description;
-            elements.systemCardsContainer.innerHTML = data.system.cards.map(card => `
+        // 데이터를 페이지에 렌더링하는 함수
+        function renderPage(data) {
+            if (!data) return;
+            pageData = data; // 전역 데이터 업데이트
+
+            // 각 섹션 렌더링 함수 호출
+            renderHome(data.home);
+            renderAbout(data.about);
+            renderSystem(data.system);
+            renderWorks(data.works);
+            renderYoutube(data.youtube);
+            renderRecruit(data.recruit);
+            renderFooter(data.footer);
+
+            if (isAdmin) setEditable(true);
+        }
+
+        // 각 섹션별 렌더링 함수
+        function renderHome(homeData) { elements.homeTitle.innerHTML = homeData.title; }
+        function renderAbout(aboutData) {
+            elements.aboutImage.src = aboutData.imageUrl;
+            elements.aboutSubtitle.innerHTML = aboutData.subtitle;
+            elements.aboutDesc.innerHTML = aboutData.description;
+        }
+        function renderSystem(systemData) {
+            elements.systemDesc.innerHTML = systemData.description;
+            elements.systemCardsContainer.innerHTML = systemData.cards.map(card => `
                 <div class="bg-gray-900 p-8 rounded-lg text-center border-t-4 border-red-500/50 hover:border-red-500 transition-all duration-300">
                     <h3 class="font-display text-3xl text-white">${card.title}</h3>
                     <p class="mt-2 text-gray-400">${card.description}</p>
-                </div>
-            `).join('');
-
-            elements.activitiesContainer.innerHTML = data.works.activities.map(item => `
+                </div>`).join('');
+        }
+        function renderWorks(worksData) {
+            elements.activitiesContainer.innerHTML = worksData.activities.map(item => `
                 <div class="bg-gray-900 p-4 rounded-lg flex items-center justify-between hover:bg-gray-800 transition-colors">
-                    <span>${item.title}</span>
-                    <a href="${item.link}" class="text-red-500 hover:underline">영상보기</a>
-                </div>
-            `).join('');
-
-            elements.albumsContainer.innerHTML = data.works.albums.map(item => `
+                    <span>${item.title}</span><a href="${item.link}" class="text-red-500 hover:underline">영상보기</a>
+                </div>`).join('');
+            elements.albumsContainer.innerHTML = worksData.albums.map(item => `
                 <div class="bg-gray-900 p-4 rounded-lg flex items-center justify-between hover:bg-gray-800 transition-colors">
-                    <span>${item.title}</span>
-                    <a href="${item.link}" target="_blank" class="text-red-500 hover:underline">앨범듣기</a>
-                </div>
-            `).join('');
-
-            elements.youtubeDesc.innerHTML = data.youtube.description;
-            elements.youtubeSubscribeLink.href = data.youtube.channelUrl;
-            elements.youtubeVideosContainer.innerHTML = data.youtube.videoIds.map(id => `
+                    <span>${item.title}</span><a href="${item.link}" target="_blank" class="text-red-500 hover:underline">앨범듣기</a>
+                </div>`).join('');
+        }
+        function renderYoutube(youtubeData) {
+            elements.youtubeDesc.innerHTML = youtubeData.description;
+            elements.youtubeSubscribeLink.href = youtubeData.channelUrl;
+            elements.youtubeVideosContainer.innerHTML = youtubeData.videoIds.map(id => `
                 <div class="w-full aspect-video rounded-lg overflow-hidden shadow-lg shadow-red-500/10">
                     <iframe src="https://www.youtube.com/embed/${id}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full h-full"></iframe>
-                </div>
-            `).join('');
-
-            elements.recruitDesc.innerHTML = data.recruit.description;
-            elements.recruitLink.href = data.recruit.link;
-            elements.recruitStatus.innerHTML = `<p>${data.recruit.status}</p>`;
-
-            elements.footerYoutubeLink.href = data.footer.youtubeUrl;
-            elements.footerInstagramLink.href = data.footer.instagramUrl;
-            elements.footerContact.innerHTML = data.footer.contact;
-            elements.footerCopyright.innerHTML = data.footer.copyright;
-
-            // 관리자 모드일 경우 편집 가능하도록 설정
-            if (isAdmin) {
-                setEditable(true);
-            }
+                </div>`).join('');
         }
-        
-        // Firestore 실시간 리스너 설정
+        function renderRecruit(recruitData) {
+            elements.recruitDesc.innerHTML = recruitData.description;
+            elements.recruitLink.href = recruitData.link;
+            elements.recruitStatus.innerHTML = `<p>${recruitData.status}</p>`;
+        }
+        function renderFooter(footerData) {
+            elements.footerYoutubeLink.href = footerData.youtubeUrl;
+            elements.footerInstagramLink.href = footerData.instagramUrl;
+            elements.footerContact.innerHTML = footerData.contact;
+            elements.footerCopyright.innerHTML = footerData.copyright;
+        }
+
+        // Firestore 실시간 리스너
         onSnapshot(contentRef, (docSnap) => {
             if (docSnap.exists()) {
-                populatePage(docSnap.data());
+                renderPage(docSnap.data());
             } else {
-                console.log("No such document! Firestore에 초기 데이터가 필요합니다.");
-                // 여기에 기본 데이터를 표시하거나 에러 메시지를 보여줄 수 있습니다.
+                console.log("Firestore에 초기 데이터가 필요합니다.");
             }
-        }, (error) => {
-            console.error("Error fetching document: ", error);
         });
 
-        // 편집 가능 상태 설정/해제 함수
+        // 편집 가능 상태 설정/해제
         function setEditable(isEditable) {
             const editableElements = [
                 elements.homeTitle, elements.aboutSubtitle, elements.aboutDesc,
                 elements.systemDesc, elements.youtubeDesc, elements.recruitDesc,
                 elements.recruitStatus, elements.footerContact, elements.footerCopyright
             ];
-            editableElements.forEach(el => {
-                el.setAttribute('contenteditable', isEditable);
-            });
+            editableElements.forEach(el => el.setAttribute('contenteditable', isEditable));
+            elements.editListBtns.forEach(btn => btn.classList.toggle('hidden', !isEditable));
+            elements.editAboutImageBtn.classList.toggle('hidden', !isEditable);
         }
-        
+
+        // 모달 열기
+        function openModal(section) {
+            const modal = elements.modal;
+            let contentHtml = '';
+            let actionsHtml = '';
+            let items = [];
+
+            if (section === 'activities' || section === 'albums') {
+                items = [...pageData.works[section]];
+                modal.title.textContent = section === 'albums' ? '앨범 목록 수정' : '활동 목록 수정';
+                contentHtml = items.map((item, index) => `
+                    <div class="flex items-center justify-between p-2 bg-gray-700 rounded mb-2" data-index="${index}">
+                        <div><p class="text-sm font-bold">${item.title}</p><p class="text-xs text-gray-400">${item.link}</p></div>
+                        <button class="delete-item-btn text-red-500 hover:text-red-400 font-bold">삭제</button>
+                    </div>`).join('');
+                actionsHtml = `
+                    <div class="border-t border-gray-600 pt-4">
+                        <h4 class="text-lg font-bold mb-2">새 항목 추가</h4>
+                        <input id="new-item-title" type="text" placeholder="제목" class="w-full p-2 rounded bg-gray-900 text-white mb-2">
+                        <input id="new-item-link" type="text" placeholder="링크" class="w-full p-2 rounded bg-gray-900 text-white">
+                        <button id="add-item-btn" class="mt-2 w-full bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-500">추가</button>
+                    </div>`;
+            } else if (section === 'videos') {
+                items = [...pageData.youtube.videoIds];
+                modal.title.textContent = '유튜브 영상 수정';
+                contentHtml = items.map((id, index) => `
+                    <div class="flex items-center justify-between p-2 bg-gray-700 rounded mb-2" data-index="${index}">
+                        <p class="text-sm text-gray-300">https://youtu.be/${id}</p>
+                        <button class="delete-item-btn text-red-500 hover:text-red-400 font-bold">삭제</button>
+                    </div>`).join('');
+                actionsHtml = `
+                    <div class="border-t border-gray-600 pt-4">
+                        <h4 class="text-lg font-bold mb-2">새 영상 추가</h4>
+                        <input id="new-video-id" type="text" placeholder="유튜브 영상 ID (예: r2qOLeRvAHY)" class="w-full p-2 rounded bg-gray-900 text-white">
+                        <button id="add-item-btn" class="mt-2 w-full bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-500">추가</button>
+                    </div>`;
+            }
+
+            modal.content.innerHTML = contentHtml;
+            modal.actions.innerHTML = actionsHtml;
+            modal.backdrop.classList.remove('hidden');
+            modal.el.dataset.section = section; // 현재 수정 중인 섹션 정보 저장
+        }
+
+        // 모달 닫기
+        function closeModal() {
+            elements.modal.backdrop.classList.add('hidden');
+            elements.modal.el.dataset.section = '';
+        }
+
+        // 모달 내부 아이템 추가/삭제 로직
+        elements.modal.el.addEventListener('click', (e) => {
+            const section = e.currentTarget.dataset.section;
+            if (!section) return;
+
+            // 아이템 삭제
+            if (e.target.classList.contains('delete-item-btn')) {
+                const itemDiv = e.target.closest('[data-index]');
+                const index = parseInt(itemDiv.dataset.index, 10);
+                
+                if (section === 'videos') {
+                    pageData.youtube.videoIds.splice(index, 1);
+                } else {
+                    pageData.works[section].splice(index, 1);
+                }
+                renderPage(pageData); // 페이지 즉시 다시 렌더링
+                openModal(section); // 모달 내용 새로고침
+                showToast('항목이 삭제되었습니다. 최종 저장을 해주세요.');
+            }
+
+            // 아이템 추가
+            if (e.target.id === 'add-item-btn') {
+                if (section === 'videos') {
+                    const newId = document.getElementById('new-video-id').value.trim();
+                    if (newId) {
+                        pageData.youtube.videoIds.push(newId);
+                        document.getElementById('new-video-id').value = '';
+                    }
+                } else {
+                    const newTitle = document.getElementById('new-item-title').value.trim();
+                    const newLink = document.getElementById('new-item-link').value.trim();
+                    if (newTitle && newLink) {
+                        pageData.works[section].push({ title: newTitle, link: newLink });
+                        document.getElementById('new-item-title').value = '';
+                        document.getElementById('new-item-link').value = '';
+                    }
+                }
+                renderPage(pageData);
+                openModal(section);
+                showToast('항목이 추가되었습니다. 최종 저장을 해주세요.');
+            }
+        });
+
         // 관리자 로그인
         document.getElementById('admin-login-btn').addEventListener('click', () => {
             const password = prompt('관리자 비밀번호를 입력하세요:');
@@ -368,66 +456,26 @@
             setEditable(false);
             document.getElementById('admin-login-btn').classList.remove('hidden');
             document.getElementById('admin-controls').classList.add('hidden');
-            showToast('로그아웃 되었습니다.');
+            location.reload(); // 페이지 새로고침으로 편집 상태 초기화
         });
 
-        // 변경사항 저장
+        // 전체 저장 버튼
         document.getElementById('save-btn').addEventListener('click', async () => {
             if (!isAdmin) return;
 
-            // 이미지 URL, 링크 등 복잡한 데이터는 prompt로 입력받아 수정
-            const newAboutImageUrl = prompt("어바웃 섹션 이미지 URL을 입력하세요:", elements.aboutImage.src);
-
-            const updatedData = {
-                home: { title: elements.homeTitle.innerHTML },
-                about: {
-                    imageUrl: newAboutImageUrl || elements.aboutImage.src,
-                    subtitle: elements.aboutSubtitle.innerHTML,
-                    description: elements.aboutDesc.innerHTML
-                },
-                system: {
-                    description: elements.systemDesc.innerHTML,
-                    // 배열 데이터는 이 예제에서 직접 수정하지 않지만, 실제로는 더 복잡한 UI가 필요합니다.
-                    cards: [
-                        { title: "LISTENER", description: "힙합을 듣고 즐기는 사람" },
-                        { title: "PLAYER", description: "직접 힙합 음악을 하는 사람" },
-                        { title: "PRODUCER", description: "앨범 제작, 믹싱/마스터링을 하는 사람" },
-                        { title: "STAFF", description: "공연 및 활동 기획/보조를 하는 사람" }
-                    ]
-                },
-                works: {
-                     // 배열 데이터는 이 예제에서 직접 수정하지 않지만, 실제로는 더 복잡한 UI가 필요합니다.
-                    activities: [
-                        { title: "연간 정기 공연 'Show & Prove'", link: "#youtube" },
-                        { title: "교내 버스킹 및 외부 찬조 공연", link: "#youtube" }
-                    ],
-                    albums: [
-                        { title: "[Mixtape] GHOST GLIDE (2025)", link: "https://www.melon.com/album/detail.htm?albumId=11846380" },
-                        { title: "[Mixtape] 한마 (汗馬) (2024)", link: "https://www.melon.com/album/detail.htm?albumId=11465643" },
-                        { title: "[Mixtape] #4daghost (2024)", link: "https://www.melon.com/album/detail.htm?albumId=11454014" }
-                    ]
-                },
-                youtube: {
-                    description: elements.youtubeDesc.innerHTML,
-                    channelUrl: elements.youtubeSubscribeLink.href,
-                    // 배열 데이터는 이 예제에서 직접 수정하지 않지만, 실제로는 더 복잡한 UI가 필요합니다.
-                    videoIds: ["r2qOLeRvAHY", "x__JbF7wNTc"]
-                },
-                recruit: {
-                    description: elements.recruitDesc.innerHTML,
-                    link: elements.recruitLink.href,
-                    status: elements.recruitStatus.innerText
-                },
-                footer: {
-                    youtubeUrl: elements.footerYoutubeLink.href,
-                    instagramUrl: elements.footerInstagramLink.href,
-                    contact: elements.footerContact.innerHTML,
-                    copyright: elements.footerCopyright.innerHTML
-                }
-            };
+            // 현재 화면의 텍스트 컨텐츠를 pageData에 반영
+            pageData.home.title = elements.homeTitle.innerHTML;
+            pageData.about.subtitle = elements.aboutSubtitle.innerHTML;
+            pageData.about.description = elements.aboutDesc.innerHTML;
+            pageData.system.description = elements.systemDesc.innerHTML;
+            pageData.youtube.description = elements.youtubeDesc.innerHTML;
+            pageData.recruit.description = elements.recruitDesc.innerHTML;
+            pageData.recruit.status = elements.recruitStatus.innerText;
+            pageData.footer.contact = elements.footerContact.innerHTML;
+            pageData.footer.copyright = elements.footerCopyright.innerHTML;
             
             try {
-                await setDoc(contentRef, updatedData);
+                await setDoc(contentRef, pageData);
                 showToast('성공적으로 저장되었습니다!');
             } catch (error) {
                 console.error("Error writing document: ", error);
@@ -435,51 +483,50 @@
             }
         });
 
-        // 토스트 메시지 표시 함수
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.remove('opacity-0');
-            setTimeout(() => {
-                toast.classList.add('opacity-0');
-            }, 3000);
-        }
-
-        // 모바일 메뉴 토글
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const mobileMenu = document.getElementById('mobile-menu');
-        mobileMenuButton.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
+        // 기타 이벤트 리스너
+        elements.modal.closeBtn.addEventListener('click', closeModal);
+        elements.modal.backdrop.addEventListener('click', (e) => {
+            if (e.target === elements.modal.backdrop) closeModal();
+        });
+        elements.editListBtns.forEach(btn => btn.addEventListener('click', (e) => openModal(e.target.dataset.section)));
+        elements.editAboutImageBtn.addEventListener('click', () => {
+             const newUrl = prompt("새 이미지 URL을 입력하세요:", pageData.about.imageUrl);
+             if (newUrl) {
+                pageData.about.imageUrl = newUrl;
+                renderPage(pageData);
+                showToast('이미지가 변경되었습니다. 최종 저장을 해주세요.');
+             }
         });
 
-        // 스크롤 애니메이션
+        // 초기화 로직 (애니메이션 등)
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
         const revealElements = document.querySelectorAll('.reveal');
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
+                if (entry.isIntersecting) entry.target.classList.add('visible');
             });
         }, { threshold: 0.1 });
         revealElements.forEach(el => observer.observe(el));
-
-        // 네비게이션 스크롤 활성화
         const sections = document.querySelectorAll('section');
         const navLinks = document.querySelectorAll('.nav-link');
         window.addEventListener('scroll', () => {
             let current = '';
             sections.forEach(section => {
-                if (pageYOffset >= section.offsetTop - 100) {
-                    current = section.getAttribute('id');
-                }
+                if (pageYOffset >= section.offsetTop - 100) current = section.getAttribute('id');
             });
             navLinks.forEach(link => {
                 link.classList.remove('active');
-                if (link.getAttribute('href').includes(current)) {
-                    link.classList.add('active');
-                }
+                if (link.getAttribute('href').includes(current)) link.classList.add('active');
             });
         });
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.remove('opacity-0');
+            setTimeout(() => toast.classList.add('opacity-0'), 3000);
+        }
     </script>
 
 </body>
