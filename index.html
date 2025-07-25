@@ -305,7 +305,7 @@
         function renderYoutube(youtubeData) {
             elements.youtubeDesc.innerHTML = youtubeData.description;
             elements.youtubeSubscribeLink.href = youtubeData.channelUrl;
-            elements.youtubeVideosContainer.innerHTML = youtubeData.videoIds.map(id => `
+            elements.youtubeVideosContainer.innerHTML = (youtubeData.videoIds || []).map(id => `
                 <div class="w-full aspect-video rounded-lg overflow-hidden shadow-lg shadow-red-500/10">
                     <iframe src="https://www.youtube.com/embed/${id}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full h-full"></iframe>
                 </div>`).join('');
@@ -313,7 +313,11 @@
         function renderRecruit(recruitData) {
             elements.recruitDesc.innerHTML = recruitData.description;
             elements.recruitLink.href = recruitData.link;
-            elements.recruitStatus.innerHTML = `<p>${recruitData.status}</p>`;
+            // status 데이터가 HTML 태그로 시작하는지 확인하여, 그렇지 않은 경우에만 <p> 태그로 감싸줍니다.
+            const statusHTML = recruitData.status && recruitData.status.trim().startsWith('<') 
+                ? recruitData.status 
+                : `<p>${recruitData.status || ''}</p>`;
+            elements.recruitStatus.innerHTML = statusHTML;
         }
         function renderFooter(footerData) {
             elements.footerYoutubeLink.href = footerData.youtubeUrl;
@@ -351,7 +355,7 @@
             let items = [];
 
             if (section === 'activities' || section === 'albums') {
-                items = [...pageData.works[section]];
+                items = pageData.works[section] ? [...pageData.works[section]] : [];
                 modal.title.textContent = section === 'albums' ? '앨범 목록 수정' : '활동 목록 수정';
                 contentHtml = items.map((item, index) => `
                     <div class="flex items-center justify-between p-2 bg-gray-700 rounded mb-2" data-index="${index}">
@@ -366,7 +370,7 @@
                         <button id="add-item-btn" class="mt-2 w-full bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-500">추가</button>
                     </div>`;
             } else if (section === 'videos') {
-                items = [...pageData.youtube.videoIds];
+                items = pageData.youtube.videoIds ? [...pageData.youtube.videoIds] : [];
                 modal.title.textContent = '유튜브 영상 수정';
                 contentHtml = items.map((id, index) => `
                     <div class="flex items-center justify-between p-2 bg-gray-700 rounded mb-2" data-index="${index}">
@@ -384,7 +388,7 @@
             modal.content.innerHTML = contentHtml;
             modal.actions.innerHTML = actionsHtml;
             modal.backdrop.classList.remove('hidden');
-            modal.el.dataset.section = section; // 현재 수정 중인 섹션 정보 저장
+            modal.el.dataset.section = section;
         }
 
         // 모달 닫기
@@ -398,7 +402,6 @@
             const section = e.currentTarget.dataset.section;
             if (!section) return;
 
-            // 아이템 삭제
             if (e.target.classList.contains('delete-item-btn')) {
                 const itemDiv = e.target.closest('[data-index]');
                 const index = parseInt(itemDiv.dataset.index, 10);
@@ -408,16 +411,16 @@
                 } else {
                     pageData.works[section].splice(index, 1);
                 }
-                renderPage(pageData); // 페이지 즉시 다시 렌더링
-                openModal(section); // 모달 내용 새로고침
+                renderPage(pageData);
+                openModal(section);
                 showToast('항목이 삭제되었습니다. 최종 저장을 해주세요.');
             }
 
-            // 아이템 추가
             if (e.target.id === 'add-item-btn') {
                 if (section === 'videos') {
                     const newId = document.getElementById('new-video-id').value.trim();
                     if (newId) {
+                        if (!pageData.youtube.videoIds) pageData.youtube.videoIds = [];
                         pageData.youtube.videoIds.push(newId);
                         document.getElementById('new-video-id').value = '';
                     }
@@ -425,6 +428,7 @@
                     const newTitle = document.getElementById('new-item-title').value.trim();
                     const newLink = document.getElementById('new-item-link').value.trim();
                     if (newTitle && newLink) {
+                        if (!pageData.works[section]) pageData.works[section] = [];
                         pageData.works[section].push({ title: newTitle, link: newLink });
                         document.getElementById('new-item-title').value = '';
                         document.getElementById('new-item-link').value = '';
@@ -456,26 +460,30 @@
             setEditable(false);
             document.getElementById('admin-login-btn').classList.remove('hidden');
             document.getElementById('admin-controls').classList.add('hidden');
-            location.reload(); // 페이지 새로고침으로 편집 상태 초기화
+            location.reload();
         });
 
         // 전체 저장 버튼
         document.getElementById('save-btn').addEventListener('click', async () => {
-            if (!isAdmin) return;
+            if (!isAdmin || !pageData) return;
 
-            // 현재 화면의 텍스트 컨텐츠를 pageData에 반영
-            pageData.home.title = elements.homeTitle.innerHTML;
-            pageData.about.subtitle = elements.aboutSubtitle.innerHTML;
-            pageData.about.description = elements.aboutDesc.innerHTML;
-            pageData.system.description = elements.systemDesc.innerHTML;
-            pageData.youtube.description = elements.youtubeDesc.innerHTML;
-            pageData.recruit.description = elements.recruitDesc.innerHTML;
-            pageData.recruit.status = elements.recruitStatus.innerText;
-            pageData.footer.contact = elements.footerContact.innerHTML;
-            pageData.footer.copyright = elements.footerCopyright.innerHTML;
+            // 1. 현재 데이터의 깊은 복사본 생성
+            const dataToSave = JSON.parse(JSON.stringify(pageData));
+
+            // 2. 복사본에 현재 DOM의 텍스트 컨텐츠 업데이트
+            dataToSave.home.title = elements.homeTitle.innerHTML;
+            dataToSave.about.subtitle = elements.aboutSubtitle.innerHTML;
+            dataToSave.about.description = elements.aboutDesc.innerHTML;
+            dataToSave.system.description = elements.systemDesc.innerHTML;
+            dataToSave.youtube.description = elements.youtubeDesc.innerHTML;
+            dataToSave.recruit.description = elements.recruitDesc.innerHTML;
+            dataToSave.recruit.status = elements.recruitStatus.innerHTML;
+            dataToSave.footer.contact = elements.footerContact.innerHTML;
+            dataToSave.footer.copyright = elements.footerCopyright.innerHTML;
             
             try {
-                await setDoc(contentRef, pageData);
+                // 3. 업데이트된 복사본을 Firestore에 저장
+                await setDoc(contentRef, dataToSave);
                 showToast('성공적으로 저장되었습니다!');
             } catch (error) {
                 console.error("Error writing document: ", error);
