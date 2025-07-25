@@ -263,7 +263,8 @@
         // 데이터를 페이지에 렌더링하는 함수
         function renderPage(data) {
             if (!data) return;
-            pageData = data; // 전역 데이터 업데이트
+            // pageData를 깊은 복사하여 원본 데이터 오염 방지
+            pageData = JSON.parse(JSON.stringify(data)); 
 
             // 각 섹션 렌더링 함수 호출
             renderHome(data.home);
@@ -286,18 +287,19 @@
         }
         function renderSystem(systemData) {
             elements.systemDesc.innerHTML = systemData.description;
-            elements.systemCardsContainer.innerHTML = systemData.cards.map(card => `
+            elements.systemCardsContainer.innerHTML = (systemData.cards || []).map(card => `
                 <div class="bg-gray-900 p-8 rounded-lg text-center border-t-4 border-red-500/50 hover:border-red-500 transition-all duration-300">
                     <h3 class="font-display text-3xl text-white">${card.title}</h3>
                     <p class="mt-2 text-gray-400">${card.description}</p>
                 </div>`).join('');
         }
         function renderWorks(worksData) {
-            elements.activitiesContainer.innerHTML = worksData.activities.map(item => `
+            elements.activitiesContainer.innerHTML = (worksData.activities || []).map(item => `
                 <div class="bg-gray-900 p-4 rounded-lg flex items-center justify-between hover:bg-gray-800 transition-colors">
-                    <span>${item.title}</span><a href="${item.link}" class="text-red-500 hover:underline">영상보기</a>
+                    <span>${item.title}</span>
+                    ${item.link ? `<a href="${item.link}" class="text-red-500 hover:underline">영상보기</a>` : ''}
                 </div>`).join('');
-            elements.albumsContainer.innerHTML = worksData.albums.map(item => `
+            elements.albumsContainer.innerHTML = (worksData.albums || []).map(item => `
                 <div class="bg-gray-900 p-4 rounded-lg flex items-center justify-between hover:bg-gray-800 transition-colors">
                     <span>${item.title}</span><a href="${item.link}" target="_blank" class="text-red-500 hover:underline">앨범듣기</a>
                 </div>`).join('');
@@ -313,7 +315,6 @@
         function renderRecruit(recruitData) {
             elements.recruitDesc.innerHTML = recruitData.description;
             elements.recruitLink.href = recruitData.link;
-            // status 데이터가 HTML 태그로 시작하는지 확인하여, 그렇지 않은 경우에만 <p> 태그로 감싸줍니다.
             const statusHTML = recruitData.status && recruitData.status.trim().startsWith('<') 
                 ? recruitData.status 
                 : `<p>${recruitData.status || ''}</p>`;
@@ -359,14 +360,14 @@
                 modal.title.textContent = section === 'albums' ? '앨범 목록 수정' : '활동 목록 수정';
                 contentHtml = items.map((item, index) => `
                     <div class="flex items-center justify-between p-2 bg-gray-700 rounded mb-2" data-index="${index}">
-                        <div><p class="text-sm font-bold">${item.title}</p><p class="text-xs text-gray-400">${item.link}</p></div>
+                        <div><p class="text-sm font-bold">${item.title}</p><p class="text-xs text-gray-400">${item.link || '링크 없음'}</p></div>
                         <button class="delete-item-btn text-red-500 hover:text-red-400 font-bold">삭제</button>
                     </div>`).join('');
                 actionsHtml = `
                     <div class="border-t border-gray-600 pt-4">
                         <h4 class="text-lg font-bold mb-2">새 항목 추가</h4>
                         <input id="new-item-title" type="text" placeholder="제목" class="w-full p-2 rounded bg-gray-900 text-white mb-2">
-                        <input id="new-item-link" type="text" placeholder="링크" class="w-full p-2 rounded bg-gray-900 text-white">
+                        <input id="new-item-link" type="text" placeholder="링크 (선택 사항)" class="w-full p-2 rounded bg-gray-900 text-white">
                         <button id="add-item-btn" class="mt-2 w-full bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-500">추가</button>
                     </div>`;
             } else if (section === 'videos') {
@@ -411,7 +412,6 @@
                 } else {
                     pageData.works[section].splice(index, 1);
                 }
-                renderPage(pageData);
                 openModal(section);
                 showToast('항목이 삭제되었습니다. 최종 저장을 해주세요.');
             }
@@ -422,21 +422,27 @@
                     if (newId) {
                         if (!pageData.youtube.videoIds) pageData.youtube.videoIds = [];
                         pageData.youtube.videoIds.push(newId);
-                        document.getElementById('new-video-id').value = '';
+                        openModal(section);
+                        showToast('항목이 추가되었습니다. 최종 저장을 해주세요.');
                     }
                 } else {
                     const newTitle = document.getElementById('new-item-title').value.trim();
                     const newLink = document.getElementById('new-item-link').value.trim();
-                    if (newTitle && newLink) {
-                        if (!pageData.works[section]) pageData.works[section] = [];
-                        pageData.works[section].push({ title: newTitle, link: newLink });
-                        document.getElementById('new-item-title').value = '';
-                        document.getElementById('new-item-link').value = '';
+                    
+                    if (section === 'activities' && newTitle) {
+                        if (!pageData.works.activities) pageData.works.activities = [];
+                        pageData.works.activities.push({ title: newTitle, link: newLink });
+                        openModal(section);
+                        showToast('항목이 추가되었습니다. 최종 저장을 해주세요.');
+                    } else if (section === 'albums' && newTitle && newLink) {
+                        if (!pageData.works.albums) pageData.works.albums = [];
+                        pageData.works.albums.push({ title: newTitle, link: newLink });
+                        openModal(section);
+                        showToast('항목이 추가되었습니다. 최종 저장을 해주세요.');
+                    } else if (section === 'albums') {
+                        alert('앨범은 제목과 링크를 모두 입력해야 합니다.');
                     }
                 }
-                renderPage(pageData);
-                openModal(section);
-                showToast('항목이 추가되었습니다. 최종 저장을 해주세요.');
             }
         });
 
@@ -467,10 +473,8 @@
         document.getElementById('save-btn').addEventListener('click', async () => {
             if (!isAdmin || !pageData) return;
 
-            // 1. 현재 데이터의 깊은 복사본 생성
             const dataToSave = JSON.parse(JSON.stringify(pageData));
 
-            // 2. 복사본에 현재 DOM의 텍스트 컨텐츠 업데이트
             dataToSave.home.title = elements.homeTitle.innerHTML;
             dataToSave.about.subtitle = elements.aboutSubtitle.innerHTML;
             dataToSave.about.description = elements.aboutDesc.innerHTML;
@@ -482,7 +486,6 @@
             dataToSave.footer.copyright = elements.footerCopyright.innerHTML;
             
             try {
-                // 3. 업데이트된 복사본을 Firestore에 저장
                 await setDoc(contentRef, dataToSave);
                 showToast('성공적으로 저장되었습니다!');
             } catch (error) {
