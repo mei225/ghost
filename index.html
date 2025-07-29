@@ -229,7 +229,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // 사용자님의 실제 Firebase 프로젝트 설정으로 교체되었습니다.
         const firebaseConfig = {
             apiKey: "AIzaSyCLGYYAsOCZNNC-v6I7oHyBxZuFuyGar64",
             authDomain: "ghost-club-19.firebaseapp.com",
@@ -368,10 +367,14 @@
                 </div>`).join('');
         }
         function renderGallery(galleryData) {
+            if (!galleryData || galleryData.length === 0) {
+                elements.galleryContainer.innerHTML = `<div class="text-center text-gray-500"><p>게시된 갤러리가 없습니다.</p>${isAdmin ? '<p class="text-sm mt-2">관리자 모드에서 \'갤러리 게시물 수정\' 버튼을 눌러 첫 게시물을 추가해보세요.</p>' : ''}</div>`;
+                return;
+            }
             elements.galleryContainer.innerHTML = (galleryData || []).map(post => `
                 <div class="reveal">
-                    <h3 class="font-display text-3xl text-red-500">${post.date}</h3>
-                    <p class="text-gray-300 mt-1 mb-4">${post.description}</p>
+                    <h3 class="font-display text-3xl text-red-500">${post.date || '날짜 없음'}</h3>
+                    <p class="text-gray-300 mt-1 mb-4">${post.description || '설명 없음'}</p>
                     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         ${(post.photos || []).map(photoUrl => `
                             <div class="aspect-square">
@@ -436,7 +439,7 @@
         function openModal(section, editIndex = -1) {
             const modal = elements.modal;
             modal.el.dataset.section = section;
-            modal.el.dataset.editIndex = editIndex; // For sub-management like photos
+            modal.el.dataset.editIndex = editIndex;
             
             if (section.startsWith('gallery-photos-')) {
                 const postIndex = parseInt(section.split('-')[2], 10);
@@ -451,14 +454,12 @@
             const getItemHtml = (item, index) => {
                 const isEditing = index === editIndex;
                 if (isEditing) {
-                    // Edit Mode HTML
                     if (section === 'videos') {
                         return `<div class="p-2 bg-gray-700 rounded mb-2" data-index="${index}"><input type="text" class="edit-item-input w-full p-2 rounded bg-gray-900 text-white mb-2" value="${item}"><div class="flex justify-end space-x-2"><button class="cancel-edit-btn modal-item-btn bg-gray-500 hover:bg-gray-400 text-white">취소</button><button class="save-item-btn modal-item-btn bg-green-600 hover:bg-green-500 text-white">저장</button></div></div>`;
                     } else {
                         return `<div class="p-2 bg-gray-700 rounded mb-2" data-index="${index}"><input type="text" class="edit-item-title-input w-full p-2 rounded bg-gray-900 text-white mb-2" value="${item.title || item.date}"><input type="text" class="edit-item-desc-input w-full p-2 rounded bg-gray-900 text-white" value="${item.link || item.description || ''}" placeholder="${section === 'activities' ? '링크 (선택)' : '링크/설명'}"><div class="flex justify-end space-x-2 mt-2"><button class="cancel-edit-btn modal-item-btn bg-gray-500 hover:bg-gray-400 text-white">취소</button><button class="save-item-btn modal-item-btn bg-green-600 hover:bg-green-500 text-white">저장</button></div></div>`;
                     }
                 } else {
-                    // Display Mode HTML
                     const itemContent = section === 'videos'
                         ? `<p class="text-sm text-gray-300">https://youtu.be/${item}</p>`
                         : `<div><p class="text-sm font-bold">${item.title || item.date}</p><p class="text-xs text-gray-400">${item.link || item.description || '내용 없음'}</p></div>`;
@@ -491,7 +492,7 @@
             modal.actions.innerHTML = actionsHtml;
             modal.backdrop.classList.remove('hidden');
         }
-
+        
         function openPhotoManagerModal(postIndex, editIndex = -1) {
             const modal = elements.modal;
             const post = pageData.gallery[postIndex];
@@ -519,7 +520,6 @@
         elements.modal.el.addEventListener('click', (e) => {
             const section = e.currentTarget.dataset.section;
             if (!section) return;
-
             const itemDiv = e.target.closest('[data-index]');
             const index = itemDiv ? parseInt(itemDiv.dataset.index, 10) : -1;
             
@@ -583,7 +583,7 @@
                     const newId = itemDiv.querySelector('.edit-item-input').value.trim();
                     if (newId) getArray()[index] = newId;
                 } else if (section === 'gallery') {
-                    const newDate = itemDiv.querySelector('.edit-item-date-input').value.trim();
+                    const newDate = itemDiv.querySelector('.edit-item-title-input').value.trim();
                     const newDesc = itemDiv.querySelector('.edit-item-desc-input').value.trim();
                     if(newDate && newDesc) {
                         getArray()[index].date = newDate;
@@ -591,7 +591,7 @@
                     }
                 } else {
                     const newTitle = itemDiv.querySelector('.edit-item-title-input').value.trim();
-                    const newLink = itemDiv.querySelector('.edit-item-link-input').value.trim();
+                    const newLink = itemDiv.querySelector('.edit-item-desc-input').value.trim();
                     if (newTitle) {
                         getArray()[index] = { title: newTitle, link: newLink };
                     }
