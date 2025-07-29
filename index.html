@@ -105,7 +105,7 @@
                 <div class="reveal grid md:grid-cols-2 gap-12 md:gap-16 items-center">
                     <div class="w-full h-64 sm:h-80 rounded-lg overflow-hidden relative group">
                          <img id="about-image" src="https://placehold.co/800x600/1a1a1a/e5e5e5?text=GHOST" alt="동아리 로고 또는 사진" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://placehold.co/800x600/1a1a1a/e5e5e5?text=Image+Not+Found';">
-                         <button id="edit-about-image-btn" class="absolute top-2 right-2 bg-black/50 text-white text-xs py-1 px-2 rounded hidden group-hover:block">이미지 수정</button>
+                         <button id="edit-about-image-btn" class="absolute top-2 right-2 bg-black/50 text-white text-xs py-1 px-2 rounded hidden">이미지 수정</button>
                     </div>
                     <div>
                         <h3 id="about-subtitle" class="font-display text-3xl text-red-500">WHO WE ARE</h3>
@@ -147,6 +147,7 @@
                             <h3 class="font-display text-3xl text-red-500">RELEASED ALBUMS</h3>
                             <button data-section="albums" class="edit-list-btn hidden bg-red-600/50 text-white text-xs py-1 px-2 rounded hover:bg-red-600">목록 수정</button>
                         </div>
+                        <p class="text-sm text-gray-400 mb-4">'모든 음원사이트에서 들으실 수 있습니다'</p>
                         <div id="albums-container" class="space-y-4"></div>
                     </div>
                 </div>
@@ -226,7 +227,7 @@
         const contentRef = doc(db, "ghost-homepage", "content");
 
         let isAdmin = false;
-        const ADMIN_PASSWORD = "ghost";
+        const ADMIN_PASSWORD = "2025ghost@hiphop";
         let pageData = null; // 페이지 전체 데이터를 저장할 변수
 
         // 모든 UI 요소를 객체로 관리
@@ -344,7 +345,17 @@
             ];
             editableElements.forEach(el => el.setAttribute('contenteditable', isEditable));
             elements.editListBtns.forEach(btn => btn.classList.toggle('hidden', !isEditable));
-            elements.editAboutImageBtn.classList.toggle('hidden', !isEditable);
+            // group-hover를 제거했으므로 JS로만 제어
+            const imgBtn = elements.editAboutImageBtn;
+            const imgContainer = imgBtn.parentElement;
+            if (isEditable) {
+                imgContainer.addEventListener('mouseenter', () => imgBtn.classList.remove('hidden'));
+                imgContainer.addEventListener('mouseleave', () => imgBtn.classList.add('hidden'));
+            } else {
+                // 이벤트 리스너를 제거하기 위해 새로운 리스너 함수를 만들지 않고, 기존 로직을 비활성화
+                imgBtn.classList.add('hidden');
+                // 필요하다면, 리스너를 제거하는 로직을 추가할 수 있으나, 여기서는 CSS로 충분
+            }
         }
 
         // 모달 열기
