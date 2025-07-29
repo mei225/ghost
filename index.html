@@ -64,6 +64,7 @@
                 <a href="#about" class="nav-link text-gray-300 hover:text-red-500 transition-colors duration-300">ABOUT</a>
                 <a href="#system" class="nav-link text-gray-300 hover:text-red-500 transition-colors duration-300">SYSTEM</a>
                 <a href="#works" class="nav-link text-gray-300 hover:text-red-500 transition-colors duration-300">WORKS</a>
+                <a href="#gallery" class="nav-link text-gray-300 hover:text-red-500 transition-colors duration-300">GALLERY</a>
                 <a href="#youtube" class="nav-link text-gray-300 hover:text-red-500 transition-colors duration-300">YOUTUBE</a>
                 <a href="#recruit" class="nav-link text-gray-300 hover:text-red-500 transition-colors duration-300">RECRUIT</a>
             </div>
@@ -77,6 +78,7 @@
             <a href="#about" class="block py-2 text-gray-300 hover:text-red-500">ABOUT</a>
             <a href="#system" class="block py-2 text-gray-300 hover:text-red-500">SYSTEM</a>
             <a href="#works" class="block py-2 text-gray-300 hover:text-red-500">WORKS</a>
+            <a href="#gallery" class="block py-2 text-gray-300 hover:text-red-500">GALLERY</a>
             <a href="#youtube" class="block py-2 text-gray-300 hover:text-red-500">YOUTUBE</a>
             <a href="#recruit" class="block py-2 text-gray-300 hover:text-red-500">RECRUIT</a>
         </div>
@@ -153,9 +155,25 @@
                 </div>
             </div>
         </section>
+
+        <!-- 5. Photo Gallery Section -->
+        <section id="gallery" class="py-20 md:py-32 bg-gray-900/50">
+            <div class="container mx-auto px-6">
+                <div class="reveal text-center mb-12 md:mb-16">
+                    <h2 class="font-display text-4xl sm:text-5xl md:text-7xl text-white">PHOTO GALLERY</h2>
+                    <div class="w-24 h-1 bg-red-500 mx-auto mt-4"></div>
+                </div>
+                <div class="text-center mb-8">
+                    <button data-section="gallery" class="edit-list-btn hidden bg-red-600/50 text-white text-xs py-1 px-2 rounded hover:bg-red-600">갤러리 게시물 수정</button>
+                </div>
+                <div id="gallery-container" class="space-y-16">
+                    <!-- 갤러리 게시물은 JS로 동적 생성됩니다 -->
+                </div>
+            </div>
+        </section>
         
-        <!-- 5. YouTube Section -->
-        <section id="youtube" class="py-20 md:py-32 bg-gray-900/50">
+        <!-- 6. YouTube Section -->
+        <section id="youtube" class="py-20 md:py-32">
             <div class="container mx-auto px-6">
                 <div class="reveal text-center mb-12 md:mb-16">
                     <h2 class="font-display text-4xl sm:text-5xl md:text-7xl text-white">YOUTUBE</h2>
@@ -172,8 +190,8 @@
             </div>
         </section>
 
-        <!-- 6. Recruit Section -->
-        <section id="recruit" class="py-20 md:py-32">
+        <!-- 7. Recruit Section -->
+        <section id="recruit" class="py-20 md:py-32 bg-gray-900/50">
             <div class="container mx-auto px-6 text-center">
                 <div class="reveal">
                     <h2 class="font-display text-4xl sm:text-5xl md:text-7xl text-white">JOIN US</h2>
@@ -228,9 +246,8 @@
 
         let isAdmin = false;
         const ADMIN_PASSWORD = "2025ghost@hiphop";
-        let pageData = null; // 페이지 전체 데이터를 저장할 변수
+        let pageData = null;
 
-        // 모든 UI 요소를 객체로 관리
         const elements = {
             homeTitle: document.getElementById('home-title'),
             aboutImage: document.getElementById('about-image'),
@@ -240,6 +257,7 @@
             systemCardsContainer: document.getElementById('system-cards-container'),
             activitiesContainer: document.getElementById('activities-container'),
             albumsContainer: document.getElementById('albums-container'),
+            galleryContainer: document.getElementById('gallery-container'),
             youtubeDesc: document.getElementById('youtube-desc'),
             youtubeSubscribeLink: document.getElementById('youtube-subscribe-link'),
             youtubeVideosContainer: document.getElementById('youtube-videos-container'),
@@ -261,24 +279,70 @@
                 closeBtn: document.getElementById('modal-close-btn')
             }
         };
+        
+        // Firestore에 데이터가 없을 경우 보여줄 기본 예시 데이터
+        const defaultPageData = {
+            home: { title: "Show & Prove" },
+            about: {
+                imageUrl: "https://placehold.co/800x600/1a1a1a/e5e5e5?text=GHOST",
+                subtitle: "WHO WE ARE",
+                description: "<p>'GHOST'는 2019년부터 이어진 '경남대학교 힙합 동아리'입니다. 우리는 매년 다양한 교내외 공연과 꾸준한 앨범 작업을 통해 우리의 존재를 증명하고 있습니다.</p><p class=\"mt-4\">단순히 랩을 넘어, 힙합 문화를 사랑하고 즐기는 모든 이들을 위한 열린 공간입니다.</p>"
+            },
+            system: {
+                description: "GHOST는 정해진 틀에 얽매이지 않습니다. 누구나 자유롭게 여러 역할을 넘나들며 자신의 재능을 마음껏 펼칠 수 있습니다.",
+                cards: [
+                    { title: "LISTENER", description: "힙합을 듣고 즐기는 사람" },
+                    { title: "PLAYER", description: "직접 힙합 음악을 하는 사람" },
+                    { title: "PRODUCER", description: "앨범 제작, 믹싱/마스터링을 하는 사람" },
+                    { title: "STAFF", description: "공연 및 활동 기획/보조를 하는 사람" }
+                ]
+            },
+            works: {
+                activities: [{ title: "연간 정기 공연 'Show & Prove'", link: "#youtube" }],
+                albums: [{ title: "[Mixtape] GHOST GLIDE (2025)", link: "https://www.melon.com/album/detail.htm?albumId=11846380" }]
+            },
+            gallery: [
+                {
+                    date: "2024.09",
+                    description: "2024년 정기 공연 'Show & Prove' 예시",
+                    photos: [
+                        "https://placehold.co/400x400/ef4444/ffffff?text=공연+사진+1",
+                        "https://placehold.co/400x400/1a1a1a/e5e5e5?text=공연+사진+2"
+                    ]
+                }
+            ],
+            youtube: {
+                description: "우리의 모든 활동은 유튜브에 기록됩니다. 뮤직비디오부터 공연 영상, 멤버들의 소소한 모습까지. 지금 바로 구독하고 GHOST의 모든 것을 만나보세요!",
+                channelUrl: "https://www.youtube.com/@GHOST_hiphop",
+                videoIds: ["r2qOLeRvAHY", "x__JbF7wNTc"]
+            },
+            recruit: {
+                description: "힙합을 사랑하고, 무대에 대한 열정이 있는 당신을 기다립니다. GHOST의 문은 언제나 열려있습니다. 망설이지 말고 지금 바로 인스타그램 DM으로 당신의 이야기를 들려주세요!",
+                link: "https://www.instagram.com/ghost._.hiphop/",
+                status: "신입부원 상시모집"
+            },
+            footer: {
+                youtubeUrl: "https://www.youtube.com/@GHOST_hiphop",
+                instagramUrl: "https://www.instagram.com/ghost._.hiphop/",
+                contact: "Contact: DM to Instagram @ghost._.hiphop",
+                copyright: "&copy; 2025 Jungmei. All Rights Reserved."
+            }
+        };
 
-        // 데이터를 페이지에 렌더링하는 함수
         function renderPage(data) {
             if (!data) return;
             pageData = JSON.parse(JSON.stringify(data)); 
-
             renderHome(data.home);
             renderAbout(data.about);
             renderSystem(data.system);
             renderWorks(data.works);
+            renderGallery(data.gallery);
             renderYoutube(data.youtube);
             renderRecruit(data.recruit);
             renderFooter(data.footer);
-
             if (isAdmin) setEditable(true);
         }
 
-        // 각 섹션별 렌더링 함수
         function renderHome(homeData) { elements.homeTitle.innerHTML = homeData.title; }
         function renderAbout(aboutData) {
             elements.aboutImage.src = aboutData.imageUrl;
@@ -304,6 +368,21 @@
                     <span>${item.title}</span><a href="${item.link}" target="_blank" class="text-red-500 hover:underline">앨범듣기</a>
                 </div>`).join('');
         }
+        function renderGallery(galleryData) {
+            elements.galleryContainer.innerHTML = (galleryData || []).map(post => `
+                <div class="reveal">
+                    <h3 class="font-display text-3xl text-red-500">${post.date}</h3>
+                    <p class="text-gray-300 mt-1 mb-4">${post.description}</p>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        ${(post.photos || []).map(photoUrl => `
+                            <div class="aspect-square">
+                                <img src="${photoUrl}" alt="${post.description}" class="w-full h-full object-cover rounded-lg" onerror="this.onerror=null;this.src='https://placehold.co/400x400/1a1a1a/e5e5e5?text=Error';">
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
         function renderYoutube(youtubeData) {
             elements.youtubeDesc.innerHTML = youtubeData.description;
             elements.youtubeSubscribeLink.href = youtubeData.channelUrl;
@@ -327,16 +406,15 @@
             elements.footerCopyright.innerHTML = footerData.copyright;
         }
 
-        // Firestore 실시간 리스너
         onSnapshot(contentRef, (docSnap) => {
             if (docSnap.exists()) {
                 renderPage(docSnap.data());
             } else {
-                console.log("Firestore에 초기 데이터가 필요합니다.");
+                console.log("Firestore에 데이터가 없어 예시 데이터를 표시합니다.");
+                renderPage(defaultPageData);
             }
         });
 
-        // 편집 가능 상태 설정/해제
         function setEditable(isEditable) {
             const editableElements = [
                 elements.homeTitle, elements.aboutSubtitle, elements.aboutDesc,
@@ -345,29 +423,36 @@
             ];
             editableElements.forEach(el => el.setAttribute('contenteditable', isEditable));
             elements.editListBtns.forEach(btn => btn.classList.toggle('hidden', !isEditable));
-            // group-hover를 제거했으므로 JS로만 제어
             const imgBtn = elements.editAboutImageBtn;
             const imgContainer = imgBtn.parentElement;
             if (isEditable) {
                 imgContainer.addEventListener('mouseenter', () => imgBtn.classList.remove('hidden'));
                 imgContainer.addEventListener('mouseleave', () => imgBtn.classList.add('hidden'));
             } else {
-                // 이벤트 리스너를 제거하기 위해 새로운 리스너 함수를 만들지 않고, 기존 로직을 비활성화
                 imgBtn.classList.add('hidden');
-                // 필요하다면, 리스너를 제거하는 로직을 추가할 수 있으나, 여기서는 CSS로 충분
             }
         }
 
-        // 모달 열기
-        function openModal(section, editIndex = -1) {
+        function openModal(section, editIndex = -1, subEditIndex = -1) {
             const modal = elements.modal;
             let contentHtml = '';
             let actionsHtml = '';
             let items = [];
 
             const getItemHtml = (item, index, section) => {
+                // Edit Mode
                 if (index === editIndex) {
-                    if (section === 'videos') {
+                    if (section === 'gallery') {
+                        return `
+                        <div class="p-2 bg-gray-700 rounded mb-2" data-index="${index}">
+                            <input type="text" class="edit-item-date-input w-full p-2 rounded bg-gray-900 text-white mb-2" value="${item.date}">
+                            <input type="text" class="edit-item-desc-input w-full p-2 rounded bg-gray-900 text-white" value="${item.description}">
+                            <div class="flex justify-end space-x-2 mt-2">
+                                <button class="cancel-edit-btn modal-item-btn bg-gray-500 hover:bg-gray-400 text-white">취소</button>
+                                <button class="save-item-btn modal-item-btn bg-green-600 hover:bg-green-500 text-white">저장</button>
+                            </div>
+                        </div>`;
+                    } else if (section === 'videos') {
                         return `
                         <div class="p-2 bg-gray-700 rounded mb-2" data-index="${index}">
                             <input type="text" class="edit-item-input w-full p-2 rounded bg-gray-900 text-white mb-2" value="${item}">
@@ -376,7 +461,7 @@
                                 <button class="save-item-btn modal-item-btn bg-green-600 hover:bg-green-500 text-white">저장</button>
                             </div>
                         </div>`;
-                    } else {
+                    } else { // Activities, Albums
                         return `
                         <div class="p-2 bg-gray-700 rounded mb-2" data-index="${index}">
                             <input type="text" class="edit-item-title-input w-full p-2 rounded bg-gray-900 text-white mb-2" value="${item.title}">
@@ -387,16 +472,22 @@
                             </div>
                         </div>`;
                     }
-                } else {
+                } 
+                // Display Mode
+                else {
                      const itemContent = section === 'videos'
                         ? `<p class="text-sm text-gray-300">https://youtu.be/${item}</p>`
-                        : `<div><p class="text-sm font-bold">${item.title}</p><p class="text-xs text-gray-400">${item.link || '링크 없음'}</p></div>`;
+                        : `<div><p class="text-sm font-bold">${item.title || item.date}</p><p class="text-xs text-gray-400">${item.link || item.description || '링크 없음'}</p></div>`;
+                    
+                    const managePhotosBtn = section === 'gallery' ? `<button class="manage-photos-btn modal-item-btn bg-blue-600 hover:bg-blue-500 text-white">사진관리</button>` : '';
+
                     return `
                     <div class="flex items-center justify-between p-2 bg-gray-700 rounded mb-2" data-index="${index}">
                         <div class="flex-grow mr-2">${itemContent}</div>
                         <div class="flex items-center space-x-1 flex-shrink-0">
                             <button class="move-up-btn modal-item-btn bg-gray-600 hover:bg-gray-500 text-white" ${index === 0 ? 'disabled' : ''}>↑</button>
                             <button class="move-down-btn modal-item-btn bg-gray-600 hover:bg-gray-500 text-white" ${index === items.length - 1 ? 'disabled' : ''}>↓</button>
+                            ${managePhotosBtn}
                             <button class="edit-item-btn modal-item-btn bg-yellow-600 hover:bg-yellow-500 text-white">수정</button>
                             <button class="delete-item-btn modal-item-btn bg-red-600 hover:bg-red-500 text-white">삭제</button>
                         </div>
@@ -425,6 +516,17 @@
                         <input id="new-video-id" type="text" placeholder="유튜브 영상 ID (예: r2qOLeRvAHY)" class="w-full p-2 rounded bg-gray-900 text-white">
                         <button id="add-item-btn" class="mt-2 w-full bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-500">추가</button>
                     </div>`;
+            } else if (section === 'gallery') {
+                items = pageData.gallery ? [...pageData.gallery] : [];
+                modal.title.textContent = '갤러리 게시물 수정';
+                contentHtml = items.map((item, index) => getItemHtml(item, index, section)).join('');
+                actionsHtml = `
+                    <div class="border-t border-gray-600 pt-4">
+                        <h4 class="text-lg font-bold mb-2">새 게시물 추가</h4>
+                        <input id="new-gallery-date" type="text" placeholder="날짜 (예: 2025.07)" class="w-full p-2 rounded bg-gray-900 text-white mb-2">
+                        <input id="new-gallery-desc" type="text" placeholder="설명" class="w-full p-2 rounded bg-gray-900 text-white">
+                        <button id="add-item-btn" class="mt-2 w-full bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-500">추가</button>
+                    </div>`;
             }
 
             modal.content.innerHTML = contentHtml;
@@ -444,7 +546,11 @@
             const itemDiv = e.target.closest('[data-index]');
             const index = itemDiv ? parseInt(itemDiv.dataset.index, 10) : -1;
 
-            const getArray = () => section === 'videos' ? pageData.youtube.videoIds : pageData.works[section];
+            const getArray = () => {
+                if (section === 'videos') return pageData.youtube.videoIds;
+                if (section === 'gallery') return pageData.gallery;
+                return pageData.works[section];
+            };
             
             if (e.target.classList.contains('delete-item-btn')) {
                 getArray().splice(index, 1);
@@ -458,6 +564,13 @@
                 if (section === 'videos') {
                     const newId = itemDiv.querySelector('.edit-item-input').value.trim();
                     if (newId) getArray()[index] = newId;
+                } else if (section === 'gallery') {
+                    const newDate = itemDiv.querySelector('.edit-item-date-input').value.trim();
+                    const newDesc = itemDiv.querySelector('.edit-item-desc-input').value.trim();
+                    if(newDate && newDesc) {
+                        getArray()[index].date = newDate;
+                        getArray()[index].description = newDesc;
+                    }
                 } else {
                     const newTitle = itemDiv.querySelector('.edit-item-title-input').value.trim();
                     const newLink = itemDiv.querySelector('.edit-item-link-input').value.trim();
@@ -487,6 +600,15 @@
                         pageData.youtube.videoIds.push(newId);
                         openModal(section);
                         showToast('항목이 추가되었습니다. 최종 저장을 해주세요.');
+                    }
+                } else if (section === 'gallery') {
+                    const newDate = document.getElementById('new-gallery-date').value.trim();
+                    const newDesc = document.getElementById('new-gallery-desc').value.trim();
+                    if (newDate && newDesc) {
+                        if (!pageData.gallery) pageData.gallery = [];
+                        pageData.gallery.push({ date: newDate, description: newDesc, photos: [] });
+                        openModal(section);
+                        showToast('게시물이 추가되었습니다. 최종 저장을 해주세요.');
                     }
                 } else {
                     const newTitle = document.getElementById('new-item-title').value.trim();
