@@ -255,6 +255,8 @@
         let isAdmin = false;
         const ADMIN_PASSWORD = "2025ghost@hiphop";
         let pageData = null;
+        let currentLightboxPostIndex = 0;
+        let currentLightboxPhotoIndex = 0;
 
         const elements = {
             homeTitle: document.getElementById('home-title'),
@@ -761,7 +763,7 @@
             navLinks.forEach(link => {
                 link.classList.remove('active');
                 if (link.getAttribute('href').includes(current)) link.classList.add('active');
-            });
+            }
         });
         function showToast(message) {
             const toast = document.getElementById('toast');
@@ -769,19 +771,64 @@
             toast.classList.remove('opacity-0');
             setTimeout(() => toast.classList.add('opacity-0'), 3000);
         }
+        
+        // --- LIGHTBOX LOGIC ---
+        function openLightbox(postIndex, photoIndex) {
+            currentLightboxPostIndex = postIndex;
+            currentLightboxPhotoIndex = photoIndex;
+            updateLightboxImage();
+            elements.lightbox.backdrop.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            elements.lightbox.backdrop.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function showNextImage() {
+            const photos = pageData.gallery[currentLightboxPostIndex].photos;
+            currentLightboxPhotoIndex = (currentLightboxPhotoIndex + 1) % photos.length;
+            updateLightboxImage();
+        }
+
+        function showPrevImage() {
+            const photos = pageData.gallery[currentLightboxPostIndex].photos;
+            currentLightboxPhotoIndex = (currentLightboxPhotoIndex - 1 + photos.length) % photos.length;
+            updateLightboxImage();
+        }
+
+        function updateLightboxImage() {
+            const photos = pageData.gallery[currentLightboxPostIndex].photos;
+            elements.lightbox.image.src = photos[currentLightboxPhotoIndex];
+        }
+
+        elements.galleryContainer.addEventListener('click', (e) => {
+            const postElement = e.target.closest('.gallery-post');
+            if (postElement) {
+                const postIndex = parseInt(postElement.dataset.postIndex, 10);
+                if (pageData.gallery[postIndex].photos && pageData.gallery[postIndex].photos.length > 0) {
+                    openLightbox(postIndex, 0);
+                }
+            }
+        });
+
+        elements.lightbox.closeBtn.addEventListener('click', closeLightbox);
+        elements.lightbox.backdrop.addEventListener('click', (e) => {
+            if (e.target === elements.lightbox.backdrop) closeLightbox();
+        });
+        elements.lightbox.nextBtn.addEventListener('click', showNextImage);
+        elements.lightbox.prevBtn.addEventListener('click', showPrevImage);
+
+        window.addEventListener('keydown', (e) => {
+            if (!elements.lightbox.backdrop.classList.contains('hidden')) {
+                if (e.key === 'ArrowRight') showNextImage();
+                if (e.key === 'ArrowLeft') showPrevImage();
+                if (e.key === 'Escape') closeLightbox();
+            }
+        });
+
     </script>
 
 </body>
 </html>
-" and am asking a query about/based on this code below.
-Instructions to follow:
-  * Don't output/edit the document if the query is Direct/Simple. For example, if the query asks for a simple explanation, output a direct answer.
-  * Make sure to **edit** the document if the query shows the intent of editing the document, in which case output the entire edited document, **not just that section or the edits**.
-    * Don't output the same document/empty document and say that you have edited it.
-    * Don't change unrelated code in the document.
-  * Don't output  and  in your final response.
-  * Any references like "this" or "selected code" refers to the code between  and  tags.
-  * Just acknowledge my request in the introduction.
-  * Make sure to refer to the document as "Canvas" in your response.
-
-갤러리 게시물 수정 기능이 
