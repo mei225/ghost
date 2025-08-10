@@ -371,19 +371,23 @@
                 elements.galleryContainer.innerHTML = `<div class="text-center text-gray-500 col-span-full"><p>게시된 갤러리가 없습니다.</p>${isAdmin ? '<p class="text-sm mt-2">관리자 모드에서 \'갤러리 게시물 수정\' 버튼을 눌러 첫 게시물을 추가해보세요.</p>' : ''}</div>`;
                 return;
             }
-            elements.galleryContainer.innerHTML = (galleryData || []).map(post => `
-                <div class="reveal">
-                    <h3 class="font-display text-3xl text-red-500">${post.date || '날짜 없음'}</h3>
-                    <p class="text-gray-300 mt-1 mb-4">${post.description || '설명 없음'}</p>
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        ${(post.photos || []).map(photoUrl => `
-                            <div class="aspect-square">
-                                <img src="${photoUrl}" alt="${post.description}" class="w-full h-full object-cover rounded-lg" onerror="this.onerror=null;this.src='https://placehold.co/400x400/1a1a1a/e5e5e5?text=Error';">
-                            </div>
-                        `).join('')}
+            elements.galleryContainer.innerHTML = (galleryData || []).map(post => {
+                const thumbnailUrl = (post.photos && post.photos.length > 0) 
+                    ? post.photos[0] 
+                    : 'https://placehold.co/400x400/1a1a1a/e5e5e5?text=No+Image';
+                
+                return `
+                <div class="reveal group">
+                    <div class="aspect-square w-full bg-gray-800 rounded-lg overflow-hidden">
+                        <img src="${thumbnailUrl}" alt="${post.description}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" onerror="this.onerror=null;this.src='https://placehold.co/400x400/1a1a1a/e5e5e5?text=Error';">
+                    </div>
+                    <div class="mt-4">
+                        <p class="text-sm text-red-500 font-bold">${post.date || '날짜 없음'}</p>
+                        <h4 class="text-lg text-white font-bold truncate">${post.description || '설명 없음'}</h4>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
         function renderYoutube(youtubeData) {
             elements.youtubeDesc.innerHTML = youtubeData.description;
