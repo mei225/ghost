@@ -58,10 +58,11 @@
     
     <!-- 사진 라이트박스 모달 -->
     <div id="lightbox-backdrop" class="fixed inset-0 z-[60] flex items-center justify-center hidden p-4">
-        <button id="lightbox-close" class="absolute top-4 right-4 text-white text-5xl leading-none hover:opacity-75">&times;</button>
-        <button id="lightbox-prev" class="absolute left-4 text-white text-4xl hover:opacity-75">&#10094;</button>
-        <img id="lightbox-image" src="" alt="Gallery Photo" class="max-w-[90vw] max-h-[85vh] object-contain">
-        <button id="lightbox-next" class="absolute right-4 text-white text-4xl hover:opacity-75">&#10095;</button>
+        <div id="lightbox-content-area" class="bg-gray-800 rounded-lg shadow-xl w-11/12 max-w-3xl max-h-[90vh] overflow-y-auto p-6 relative">
+            <button id="lightbox-close" class="absolute top-2 right-2 text-white text-4xl leading-none hover:opacity-75 z-10">&times;</button>
+            <div id="lightbox-header"></div>
+            <div id="lightbox-photos-container" class="mt-4 space-y-4"></div>
+        </div>
     </div>
 
 
@@ -255,8 +256,6 @@
         let isAdmin = false;
         const ADMIN_PASSWORD = "2025ghost@hiphop";
         let pageData = null;
-        let currentLightboxPostIndex = 0;
-        let currentLightboxPhotoIndex = 0;
 
         const elements = {
             homeTitle: document.getElementById('home-title'),
@@ -290,10 +289,10 @@
             },
             lightbox: {
                 backdrop: document.getElementById('lightbox-backdrop'),
-                image: document.getElementById('lightbox-image'),
+                contentArea: document.getElementById('lightbox-content-area'),
+                header: document.getElementById('lightbox-header'),
+                photosContainer: document.getElementById('lightbox-photos-container'),
                 closeBtn: document.getElementById('lightbox-close'),
-                prevBtn: document.getElementById('lightbox-prev'),
-                nextBtn: document.getElementById('lightbox-next')
             }
         };
         
@@ -763,7 +762,7 @@
             navLinks.forEach(link => {
                 link.classList.remove('active');
                 if (link.getAttribute('href').includes(current)) link.classList.add('active');
-            }
+            });
         });
         function showToast(message) {
             const toast = document.getElementById('toast');
@@ -773,10 +772,18 @@
         }
         
         // --- LIGHTBOX LOGIC ---
-        function openLightbox(postIndex, photoIndex) {
-            currentLightboxPostIndex = postIndex;
-            currentLightboxPhotoIndex = photoIndex;
-            updateLightboxImage();
+        function openLightbox(postIndex) {
+            const post = pageData.gallery[postIndex];
+            if (!post || !post.photos || post.photos.length === 0) return;
+
+            elements.lightbox.header.innerHTML = `
+                <p class="text-sm text-red-500 font-bold">${post.date || '날짜 없음'}</p>
+                <h4 class="text-lg text-white font-bold">${post.description || '설명 없음'}</h4>
+            `;
+            elements.lightbox.photosContainer.innerHTML = post.photos.map(url => `
+                <img src="${url}" class="w-full h-auto rounded-md" onerror="this.onerror=null;this.src='https://placehold.co/800x600/1a1a1a/e5e5e5?text=Error';">
+            `).join('');
+            
             elements.lightbox.backdrop.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         }
@@ -786,30 +793,11 @@
             document.body.style.overflow = 'auto';
         }
 
-        function showNextImage() {
-            const photos = pageData.gallery[currentLightboxPostIndex].photos;
-            currentLightboxPhotoIndex = (currentLightboxPhotoIndex + 1) % photos.length;
-            updateLightboxImage();
-        }
-
-        function showPrevImage() {
-            const photos = pageData.gallery[currentLightboxPostIndex].photos;
-            currentLightboxPhotoIndex = (currentLightboxPhotoIndex - 1 + photos.length) % photos.length;
-            updateLightboxImage();
-        }
-
-        function updateLightboxImage() {
-            const photos = pageData.gallery[currentLightboxPostIndex].photos;
-            elements.lightbox.image.src = photos[currentLightboxPhotoIndex];
-        }
-
         elements.galleryContainer.addEventListener('click', (e) => {
             const postElement = e.target.closest('.gallery-post');
             if (postElement) {
                 const postIndex = parseInt(postElement.dataset.postIndex, 10);
-                if (pageData.gallery[postIndex].photos && pageData.gallery[postIndex].photos.length > 0) {
-                    openLightbox(postIndex, 0);
-                }
+                openLightbox(postIndex);
             }
         });
 
@@ -817,13 +805,9 @@
         elements.lightbox.backdrop.addEventListener('click', (e) => {
             if (e.target === elements.lightbox.backdrop) closeLightbox();
         });
-        elements.lightbox.nextBtn.addEventListener('click', showNextImage);
-        elements.lightbox.prevBtn.addEventListener('click', showPrevImage);
 
         window.addEventListener('keydown', (e) => {
             if (!elements.lightbox.backdrop.classList.contains('hidden')) {
-                if (e.key === 'ArrowRight') showNextImage();
-                if (e.key === 'ArrowLeft') showPrevImage();
                 if (e.key === 'Escape') closeLightbox();
             }
         });
