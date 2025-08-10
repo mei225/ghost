@@ -164,10 +164,10 @@
                     <div class="w-24 h-1 bg-red-500 mx-auto mt-4"></div>
                 </div>
                 <div class="text-center mb-8">
-                    <button data-section="gallery" class="edit-list-btn hidden bg-red-600/50 text-white text-xs py-1 px-2 rounded hover:bg-red-600">갤러리 게시물 수정</button>
+                    <button data-section="gallery" class="edit-list-btn hidden bg-red-600/50 text-white text-xs py-1 px-2 rounded hover:bg-red-600">갤러리 수정</button>
                 </div>
-                <div id="gallery-container" class="space-y-16">
-                    <!-- 갤러리 게시물은 JS로 동적 생성됩니다 -->
+                <div id="gallery-container" class="reveal grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <!-- 갤러리 사진은 JS로 동적 생성됩니다 -->
                 </div>
             </div>
         </section>
@@ -300,14 +300,8 @@
                 albums: [{ title: "[Mixtape] GHOST GLIDE (2025)", link: "https://www.melon.com/album/detail.htm?albumId=11846380" }]
             },
             gallery: [
-                {
-                    date: "2024.09",
-                    description: "2024년 정기 공연 'Show & Prove' 예시",
-                    photos: [
-                        "https://placehold.co/400x400/ef4444/ffffff?text=공연+사진+1",
-                        "https://placehold.co/400x400/1a1a1a/e5e5e5?text=공연+사진+2"
-                    ]
-                }
+                "https://placehold.co/400x400/ef4444/ffffff?text=사진+1",
+                "https://placehold.co/400x400/1a1a1a/e5e5e5?text=사진+2"
             ],
             youtube: {
                 description: "우리의 모든 활동은 유튜브에 기록됩니다. 뮤직비디오부터 공연 영상, 멤버들의 소소한 모습까지. 지금 바로 구독하고 GHOST의 모든 것을 만나보세요!",
@@ -368,20 +362,12 @@
         }
         function renderGallery(galleryData) {
             if (!galleryData || galleryData.length === 0) {
-                elements.galleryContainer.innerHTML = `<div class="text-center text-gray-500"><p>게시된 갤러리가 없습니다.</p>${isAdmin ? '<p class="text-sm mt-2">관리자 모드에서 \'갤러리 게시물 수정\' 버튼을 눌러 첫 게시물을 추가해보세요.</p>' : ''}</div>`;
+                elements.galleryContainer.innerHTML = `<div class="text-center text-gray-500 col-span-full"><p>게시된 사진이 없습니다.</p>${isAdmin ? '<p class="text-sm mt-2">관리자 모드에서 \'갤러리 수정\' 버튼을 눌러 첫 사진을 추가해보세요.</p>' : ''}</div>`;
                 return;
             }
-            elements.galleryContainer.innerHTML = (galleryData || []).map(post => `
-                <div class="reveal">
-                    <h3 class="font-display text-3xl text-red-500">${post.date || '날짜 없음'}</h3>
-                    <p class="text-gray-300 mt-1 mb-4">${post.description || '설명 없음'}</p>
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        ${(post.photos || []).map(photoUrl => `
-                            <div class="aspect-square">
-                                <img src="${photoUrl}" alt="${post.description}" class="w-full h-full object-cover rounded-lg" onerror="this.onerror=null;this.src='https://placehold.co/400x400/1a1a1a/e5e5e5?text=Error';">
-                            </div>
-                        `).join('')}
-                    </div>
+            elements.galleryContainer.innerHTML = (galleryData || []).map(photoUrl => `
+                <div class="aspect-square">
+                    <img src="${photoUrl}" alt="Gallery photo" class="w-full h-full object-cover rounded-lg" onerror="this.onerror=null;this.src='https://placehold.co/400x400/1a1a1a/e5e5e5?text=Error';">
                 </div>
             `).join('');
         }
@@ -441,12 +427,6 @@
             modal.el.dataset.section = section;
             modal.el.dataset.editIndex = editIndex;
             
-            if (section.startsWith('gallery-photos-')) {
-                const postIndex = parseInt(section.split('-')[2], 10);
-                openPhotoManagerModal(postIndex, editIndex);
-                return;
-            }
-
             let contentHtml = '';
             let actionsHtml = '';
             let items = [];
@@ -454,17 +434,16 @@
             const getItemHtml = (item, index) => {
                 const isEditing = index === editIndex;
                 if (isEditing) {
-                    if (section === 'videos') {
+                    if (section === 'videos' || section === 'gallery') {
                         return `<div class="p-2 bg-gray-700 rounded mb-2" data-index="${index}"><input type="text" class="edit-item-input w-full p-2 rounded bg-gray-900 text-white mb-2" value="${item}"><div class="flex justify-end space-x-2"><button class="cancel-edit-btn modal-item-btn bg-gray-500 hover:bg-gray-400 text-white">취소</button><button class="save-item-btn modal-item-btn bg-green-600 hover:bg-green-500 text-white">저장</button></div></div>`;
                     } else {
-                        return `<div class="p-2 bg-gray-700 rounded mb-2" data-index="${index}"><input type="text" class="edit-item-title-input w-full p-2 rounded bg-gray-900 text-white mb-2" value="${item.title || item.date}"><input type="text" class="edit-item-desc-input w-full p-2 rounded bg-gray-900 text-white" value="${item.link || item.description || ''}" placeholder="${section === 'activities' ? '링크 (선택)' : '링크/설명'}"><div class="flex justify-end space-x-2 mt-2"><button class="cancel-edit-btn modal-item-btn bg-gray-500 hover:bg-gray-400 text-white">취소</button><button class="save-item-btn modal-item-btn bg-green-600 hover:bg-green-500 text-white">저장</button></div></div>`;
+                        return `<div class="p-2 bg-gray-700 rounded mb-2" data-index="${index}"><input type="text" class="edit-item-title-input w-full p-2 rounded bg-gray-900 text-white mb-2" value="${item.title}"><input type="text" class="edit-item-desc-input w-full p-2 rounded bg-gray-900 text-white" value="${item.link || ''}" placeholder="${section === 'activities' ? '링크 (선택)' : '링크'}"><div class="flex justify-end space-x-2 mt-2"><button class="cancel-edit-btn modal-item-btn bg-gray-500 hover:bg-gray-400 text-white">취소</button><button class="save-item-btn modal-item-btn bg-green-600 hover:bg-green-500 text-white">저장</button></div></div>`;
                     }
                 } else {
-                    const itemContent = section === 'videos'
-                        ? `<p class="text-sm text-gray-300">https://youtu.be/${item}</p>`
-                        : `<div><p class="text-sm font-bold">${item.title || item.date}</p><p class="text-xs text-gray-400">${item.link || item.description || '내용 없음'}</p></div>`;
-                    const managePhotosBtn = section === 'gallery' ? `<button class="manage-photos-btn modal-item-btn bg-blue-600 hover:bg-blue-500 text-white">사진관리</button>` : '';
-                    return `<div class="flex items-center justify-between p-2 bg-gray-700 rounded mb-2" data-index="${index}"><div class="flex-grow mr-2">${itemContent}</div><div class="flex items-center space-x-1 flex-shrink-0"><button class="move-up-btn modal-item-btn bg-gray-600 hover:bg-gray-500 text-white" ${index === 0 ? 'disabled' : ''}>↑</button><button class="move-down-btn modal-item-btn bg-gray-600 hover:bg-gray-500 text-white" ${index === items.length - 1 ? 'disabled' : ''}>↓</button>${managePhotosBtn}<button class="edit-item-btn modal-item-btn bg-yellow-600 hover:bg-yellow-500 text-white">수정</button><button class="delete-item-btn modal-item-btn bg-red-600 hover:bg-red-500 text-white">삭제</button></div></div>`;
+                    const itemContent = (section === 'videos' || section === 'gallery')
+                        ? `<p class="text-sm text-gray-300 truncate w-60">${item}</p>`
+                        : `<div><p class="text-sm font-bold">${item.title}</p><p class="text-xs text-gray-400">${item.link || '링크 없음'}</p></div>`;
+                    return `<div class="flex items-center justify-between p-2 bg-gray-700 rounded mb-2" data-index="${index}"><div class="flex-grow mr-2">${itemContent}</div><div class="flex items-center space-x-1 flex-shrink-0"><button class="move-up-btn modal-item-btn bg-gray-600 hover:bg-gray-500 text-white" ${index === 0 ? 'disabled' : ''}>↑</button><button class="move-down-btn modal-item-btn bg-gray-600 hover:bg-gray-500 text-white" ${index === items.length - 1 ? 'disabled' : ''}>↓</button><button class="edit-item-btn modal-item-btn bg-yellow-600 hover:bg-yellow-500 text-white">수정</button><button class="delete-item-btn modal-item-btn bg-red-600 hover:bg-red-500 text-white">삭제</button></div></div>`;
                 }
             };
 
@@ -483,33 +462,14 @@
                 modal.title.textContent = '유튜브 영상 수정';
                 actionsHtml = `<div class="border-t border-gray-600 pt-4"><h4 class="text-lg font-bold mb-2">새 영상 추가</h4><input id="new-video-id" type="text" placeholder="유튜브 영상 ID (예: r2qOLeRvAHY)" class="w-full p-2 rounded bg-gray-900 text-white"><button id="add-item-btn" class="mt-2 w-full bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-500">추가</button></div>`;
             } else if (section === 'gallery') {
-                modal.title.textContent = '갤러리 게시물 수정';
-                actionsHtml = `<div class="border-t border-gray-600 pt-4"><h4 class="text-lg font-bold mb-2">새 게시물 추가</h4><input id="new-gallery-date" type="text" placeholder="날짜 (예: 2025.07)" class="w-full p-2 rounded bg-gray-900 text-white mb-2"><input id="new-gallery-desc" type="text" placeholder="설명" class="w-full p-2 rounded bg-gray-900 text-white"><button id="add-item-btn" class="mt-2 w-full bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-500">추가</button></div>`;
+                modal.title.textContent = '포토 갤러리 수정';
+                actionsHtml = `<div class="border-t border-gray-600 pt-4"><h4 class="text-lg font-bold mb-2">새 사진 추가</h4><input id="new-gallery-url" type="text" placeholder="사진 URL" class="w-full p-2 rounded bg-gray-900 text-white"><button id="add-item-btn" class="mt-2 w-full bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-500">추가</button></div>`;
             }
 
             contentHtml = items.map((item, index) => getItemHtml(item, index, section)).join('');
             modal.content.innerHTML = contentHtml;
             modal.actions.innerHTML = actionsHtml;
             modal.backdrop.classList.remove('hidden');
-        }
-        
-        function openPhotoManagerModal(postIndex, editIndex = -1) {
-            const modal = elements.modal;
-            const post = pageData.gallery[postIndex];
-            const photos = post.photos || [];
-            modal.title.innerHTML = `<button class="back-to-gallery-btn text-sm mr-4 hover:text-red-500">&larr; 뒤로</button> 사진 관리: ${post.date}`;
-            
-            const getPhotoItemHtml = (photoUrl, index) => {
-                if (index === editIndex) {
-                    return `<div class="p-2 bg-gray-700 rounded mb-2" data-photo-index="${index}"><input type="text" class="edit-photo-url-input w-full p-2 rounded bg-gray-900 text-white mb-2" value="${photoUrl}"><div class="flex justify-end space-x-2"><button class="cancel-edit-photo-btn modal-item-btn bg-gray-500 hover:bg-gray-400 text-white">취소</button><button class="save-photo-btn modal-item-btn bg-green-600 hover:bg-green-500 text-white">저장</button></div></div>`;
-                } else {
-                    return `<div class="flex items-center justify-between p-2 bg-gray-700 rounded mb-2" data-photo-index="${index}"><p class="text-sm text-gray-300 truncate w-60">${photoUrl}</p><div class="flex items-center space-x-1 flex-shrink-0"><button class="move-photo-up-btn modal-item-btn bg-gray-600 hover:bg-gray-500 text-white" ${index === 0 ? 'disabled' : ''}>↑</button><button class="move-photo-down-btn modal-item-btn bg-gray-600 hover:bg-gray-500 text-white" ${index === photos.length - 1 ? 'disabled' : ''}>↓</button><button class="edit-photo-btn modal-item-btn bg-yellow-600 hover:bg-yellow-500 text-white">수정</button><button class="delete-photo-btn modal-item-btn bg-red-600 hover:bg-red-500 text-white">삭제</button></div></div>`;
-                }
-            };
-
-            modal.content.innerHTML = photos.map(getPhotoItemHtml).join('');
-            modal.actions.innerHTML = `<div class="border-t border-gray-600 pt-4"><h4 class="text-lg font-bold mb-2">새 사진 추가</h4><input id="new-photo-url" type="text" placeholder="사진 URL" class="w-full p-2 rounded bg-gray-900 text-white"><button id="add-photo-btn" class="mt-2 w-full bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-500">추가</button></div>`;
-            modal.el.dataset.section = `gallery-photos-${postIndex}`;
         }
 
         function closeModal() {
@@ -522,47 +482,6 @@
             if (!section) return;
             const itemDiv = e.target.closest('[data-index]');
             const index = itemDiv ? parseInt(itemDiv.dataset.index, 10) : -1;
-            
-            const photoItemDiv = e.target.closest('[data-photo-index]');
-            const photoIndex = photoItemDiv ? parseInt(photoItemDiv.dataset.photoIndex, 10) : -1;
-
-            if (section.startsWith('gallery-photos-')) {
-                const postIndex = parseInt(section.split('-')[2], 10);
-                const photos = pageData.gallery[postIndex].photos;
-
-                if (e.target.classList.contains('back-to-gallery-btn')) {
-                    openModal('gallery');
-                } else if (e.target.classList.contains('delete-photo-btn')) {
-                    photos.splice(photoIndex, 1);
-                    openPhotoManagerModal(postIndex);
-                } else if (e.target.classList.contains('edit-photo-btn')) {
-                    openPhotoManagerModal(postIndex, photoIndex);
-                } else if (e.target.classList.contains('cancel-edit-photo-btn')) {
-                    openPhotoManagerModal(postIndex);
-                } else if (e.target.classList.contains('save-photo-btn')) {
-                    const newUrl = photoItemDiv.querySelector('.edit-photo-url-input').value.trim();
-                    if (newUrl) photos[photoIndex] = newUrl;
-                    openPhotoManagerModal(postIndex);
-                } else if (e.target.classList.contains('move-photo-up-btn')) {
-                    if (photoIndex > 0) {
-                        [photos[photoIndex], photos[photoIndex - 1]] = [photos[photoIndex - 1], photos[photoIndex]];
-                        openPhotoManagerModal(postIndex);
-                    }
-                } else if (e.target.classList.contains('move-photo-down-btn')) {
-                    if (photoIndex < photos.length - 1) {
-                        [photos[photoIndex], photos[photoIndex + 1]] = [photos[photoIndex + 1], photos[photoIndex]];
-                        openPhotoManagerModal(postIndex);
-                    }
-                } else if (e.target.id === 'add-photo-btn') {
-                    const newUrl = document.getElementById('new-photo-url').value.trim();
-                    if (newUrl) {
-                        if (!photos) pageData.gallery[postIndex].photos = [];
-                        pageData.gallery[postIndex].photos.push(newUrl);
-                        openPhotoManagerModal(postIndex);
-                    }
-                }
-                return;
-            }
 
             const getArray = () => {
                 if (section === 'videos') return pageData.youtube.videoIds;
@@ -579,16 +498,9 @@
             } else if (e.target.classList.contains('cancel-edit-btn')) {
                 openModal(section);
             } else if (e.target.classList.contains('save-item-btn')) {
-                if (section === 'videos') {
-                    const newId = itemDiv.querySelector('.edit-item-input').value.trim();
-                    if (newId) getArray()[index] = newId;
-                } else if (section === 'gallery') {
-                    const newDate = itemDiv.querySelector('.edit-item-title-input').value.trim();
-                    const newDesc = itemDiv.querySelector('.edit-item-desc-input').value.trim();
-                    if(newDate && newDesc) {
-                        getArray()[index].date = newDate;
-                        getArray()[index].description = newDesc;
-                    }
+                if (section === 'videos' || section === 'gallery') {
+                    const newValue = itemDiv.querySelector('.edit-item-input').value.trim();
+                    if (newValue) getArray()[index] = newValue;
                 } else {
                     const newTitle = itemDiv.querySelector('.edit-item-title-input').value.trim();
                     const newLink = itemDiv.querySelector('.edit-item-desc-input').value.trim();
@@ -610,8 +522,6 @@
                     [arr[index], arr[index + 1]] = [arr[index + 1], arr[index]];
                     openModal(section);
                 }
-            } else if (e.target.classList.contains('manage-photos-btn')) {
-                openPhotoManagerModal(index);
             } else if (e.target.id === 'add-item-btn') {
                 if (section === 'videos') {
                     const newId = document.getElementById('new-video-id').value.trim();
@@ -622,13 +532,12 @@
                         showToast('항목이 추가되었습니다. 최종 저장을 해주세요.');
                     }
                 } else if (section === 'gallery') {
-                    const newDate = document.getElementById('new-gallery-date').value.trim();
-                    const newDesc = document.getElementById('new-gallery-desc').value.trim();
-                    if (newDate && newDesc) {
+                    const newUrl = document.getElementById('new-gallery-url').value.trim();
+                    if (newUrl) {
                         if (!pageData.gallery) pageData.gallery = [];
-                        pageData.gallery.push({ date: newDate, description: newDesc, photos: [] });
+                        pageData.gallery.push(newUrl);
                         openModal(section);
-                        showToast('게시물이 추가되었습니다. 최종 저장을 해주세요.');
+                        showToast('사진이 추가되었습니다. 최종 저장을 해주세요.');
                     }
                 } else {
                     const newTitle = document.getElementById('new-item-title').value.trim();
@@ -725,11 +634,10 @@
             revealElements.forEach(el => observer.observe(el));
         }
         
-        // Call animations setup after the first render and subsequent re-renders
         const originalRenderPage = renderPage;
         renderPage = (data) => {
             originalRenderPage(data);
-            setTimeout(setupAnimations, 100); // Timeout to allow DOM update
+            setTimeout(setupAnimations, 100);
         };
         
         const sections = document.querySelectorAll('section');
