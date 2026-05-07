@@ -328,7 +328,7 @@
             ],
             youtube: {
                 description: "우리의 모든 활동은 유튜브에 기록됩니다. 뮤직비디오부터 공연 영상, 멤버들의 소소한 모습까지. 지금 바로 구독하고 GHOST의 모든 것을 만나보세요!",
-                channelUrl: "https://www.youtube.com/@GHOST_hiphop",
+                channelUrl: "https://www.youtube.com/@GHOST._.hiphop",
                 videoIds: ["r2qOLeRvAHY", "x__JbF7wNTc"]
             },
             recruit: {
@@ -337,12 +337,20 @@
                 status: "신입부원 상시모집"
             },
             footer: {
-                youtubeUrl: "https://www.youtube.com/@GHOST_hiphop",
+                youtubeUrl: "https://www.youtube.com/@GHOST._.hiphop",
                 instagramUrl: "https://www.instagram.com/ghost._.hiphop/",
                 contact: "Contact: DM to Instagram @ghost._.hiphop",
                 copyright: "&copy; 2025 Jungmei. All Rights Reserved."
             }
         };
+
+        // --- NEW: 유튜브 링크에서 ID만 추출하는 함수 ---
+        function extractYoutubeId(url) {
+            if (!url) return '';
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : url; 
+        }
 
         function renderPage(data) {
             if (!data) return;
@@ -408,25 +416,20 @@
         }
         function renderYoutube(youtubeData) {
             elements.youtubeDesc.innerHTML = youtubeData.description;
-            elements.youtubeSubscribeLink.href = youtubeData.channelUrl;
+            // 유튜브 채널 링크도 DB 정보가 없을 시 기본값으로 설정
+            elements.youtubeSubscribeLink.href = youtubeData.channelUrl || defaultPageData.youtube.channelUrl;
             elements.youtubeVideosContainer.innerHTML = (youtubeData.videoIds || []).map(id => `
                 <div class="w-full aspect-video rounded-lg overflow-hidden shadow-lg shadow-red-500/10">
                     <iframe src="https://www.youtube.com/embed/${id}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full h-full"></iframe>
                 </div>`).join('');
         }
-        function renderRecruit(recruitData) {
-            elements.recruitDesc.innerHTML = recruitData.description;
-            elements.recruitLink.href = recruitData.link;
-            const statusHTML = recruitData.status && recruitData.status.trim().startsWith('<') 
-                ? recruitData.status 
-                : `<p>${recruitData.status || ''}</p>`;
-            elements.recruitStatus.innerHTML = statusHTML;
-        }
+        
+        // --- UPDATED: 푸터 렌더링 함수에 링크 기본값 보장 로직 추가 ---
         function renderFooter(footerData) {
-            elements.footerYoutubeLink.href = footerData.youtubeUrl;
-            elements.footerInstagramLink.href = footerData.instagramUrl;
-            elements.footerContact.innerHTML = footerData.contact;
-            elements.footerCopyright.innerHTML = footerData.copyright;
+            elements.footerYoutubeLink.href = (footerData && footerData.youtubeUrl) || defaultPageData.footer.youtubeUrl;
+            elements.footerInstagramLink.href = (footerData && footerData.instagramUrl) || defaultPageData.footer.instagramUrl;
+            elements.footerContact.innerHTML = (footerData && footerData.contact) || defaultPageData.footer.contact;
+            elements.footerCopyright.innerHTML = (footerData && footerData.copyright) || defaultPageData.footer.copyright;
         }
 
         onSnapshot(contentRef, (docSnap) => {
@@ -502,7 +505,8 @@
                 actionsHtml = `<div class="border-t border-gray-600 pt-4"><h4 class="text-lg font-bold mb-2">새 항목 추가</h4><input id="new-item-title" type="text" placeholder="제목" class="w-full p-2 rounded bg-gray-900 text-white mb-2"><input id="new-item-link" type="text" placeholder="${section === 'activities' ? '링크 (선택 사항)' : '링크 (필수)'}" class="w-full p-2 rounded bg-gray-900 text-white"><button id="add-item-btn" class="mt-2 w-full bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-500">추가</button></div>`;
             } else if (section === 'videos') {
                 modal.title.textContent = '유튜브 영상 수정';
-                actionsHtml = `<div class="border-t border-gray-600 pt-4"><h4 class="text-lg font-bold mb-2">새 영상 추가</h4><input id="new-video-id" type="text" placeholder="유튜브 영상 ID (예: r2qOLeRvAHY)" class="w-full p-2 rounded bg-gray-900 text-white"><button id="add-item-btn" class="mt-2 w-full bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-500">추가</button></div>`;
+                // --- 안내 문구(placeholder) 수정 ---
+                actionsHtml = `<div class="border-t border-gray-600 pt-4"><h4 class="text-lg font-bold mb-2">새 영상 추가</h4><input id="new-video-id" type="text" placeholder="유튜브 전체 링크 또는 ID (예: https://youtu.be/...)" class="w-full p-2 rounded bg-gray-900 text-white"><button id="add-item-btn" class="mt-2 w-full bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-500">추가</button></div>`;
             } else if (section === 'gallery') {
                 modal.title.textContent = '갤러리 게시물 수정';
                 actionsHtml = `<div class="border-t border-gray-600 pt-4"><h4 class="text-lg font-bold mb-2">새 게시물 추가</h4><input id="new-gallery-date" type="text" placeholder="날짜 (예: 2025.07)" class="w-full p-2 rounded bg-gray-900 text-white mb-2"><input id="new-gallery-desc" type="text" placeholder="설명" class="w-full p-2 rounded bg-gray-900 text-white"><button id="add-item-btn" class="mt-2 w-full bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-500">추가</button></div>`;
@@ -600,8 +604,10 @@
             } else if (e.target.classList.contains('cancel-edit-btn')) {
                 openModal(section);
             } else if (e.target.classList.contains('save-item-btn')) {
+                // --- UPDATED: 유튜브 ID 자동 추출 반영 ---
                 if (section === 'videos') {
-                    const newId = itemDiv.querySelector('.edit-item-input').value.trim();
+                    const rawValue = itemDiv.querySelector('.edit-item-input').value.trim();
+                    const newId = extractYoutubeId(rawValue); // ID 추출기 사용
                     if (newId) getArray()[index] = newId;
                 } else if (section === 'gallery') {
                     const newDate = itemDiv.querySelector('.edit-item-title-input').value.trim();
@@ -634,8 +640,10 @@
             } else if (e.target.classList.contains('manage-photos-btn')) {
                 openPhotoManagerModal(index);
             } else if (e.target.id === 'add-item-btn') {
+                // --- UPDATED: 유튜브 ID 자동 추출 반영 ---
                 if (section === 'videos') {
-                    const newId = document.getElementById('new-video-id').value.trim();
+                    const rawValue = document.getElementById('new-video-id').value.trim();
+                    const newId = extractYoutubeId(rawValue); // ID 추출기 사용
                     if (newId) {
                         if (!pageData.youtube.videoIds) pageData.youtube.videoIds = [];
                         pageData.youtube.videoIds.push(newId);
