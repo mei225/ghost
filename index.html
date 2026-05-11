@@ -32,6 +32,8 @@
     <div id="admin-panel" class="fixed bottom-5 right-5 z-50">
         <button id="admin-login-btn" class="bg-gray-800 text-gray-300 text-sm font-bold py-1 px-3 rounded-full hover:bg-gray-700 transition-all duration-300 opacity-50 hover:opacity-100">Admin</button>
         <div id="admin-controls" class="hidden space-x-2">
+            <!-- 데이터 초기화 버튼 추가 -->
+            <button id="reset-btn" class="bg-red-600 text-white font-bold py-2 px-4 rounded-full hover:bg-red-500 transition-colors">데이터 초기화</button>
             <button id="save-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-500 transition-colors">전체 저장</button>
             <button id="admin-logout-btn" class="bg-gray-600 text-white font-bold py-2 px-4 rounded-full hover:bg-gray-500 transition-colors">로그아웃</button>
         </div>
@@ -344,29 +346,71 @@
             }
         };
 
-        function renderPage(data) {
-            if (!data) return;
-            pageData = JSON.parse(JSON.stringify(data)); 
-            renderHome(data.home);
-            renderAbout(data.about);
-            renderSystem(data.system);
-            renderWorks(data.works);
-            renderGallery(data.gallery);
-            renderYoutube(data.youtube);
-            renderRecruit(data.recruit);
-            renderFooter(data.footer);
-            if (isAdmin) setEditable(true);
+        // --- NEW: 유튜브 링크에서 ID만 추출하는 함수 ---
+        function extractYoutubeId(url) {
+            if (!url) return '';
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : url; 
         }
 
-        function renderHome(homeData) { elements.homeTitle.innerHTML = homeData.title; }
+        // --- NEW: 스크롤 애니메이션 함수를 위로 이동 ---
+        function setupAnimations() {
+            const revealElements = document.querySelectorAll('.reveal');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            revealElements.forEach(el => observer.observe(el));
+        }
+
+        // 페이지 렌더링 시 빈 데이터가 들어오면 기본값으로 방어하도록 보강
+        function renderPage(data) {
+            if (!data || !data.home) {
+                console.log("데이터가 손상되어 기본값을 렌더링합니다.");
+                data = defaultPageData;
+            }
+            pageData = JSON.parse(JSON.stringify(data)); 
+            
+            // 필수 구조가 없으면 무조건 기본값 병합 (에러 방지로 애니메이션 멈춤 완벽 해결)
+            if(!pageData.home) pageData.home = defaultPageData.home;
+            if(!pageData.about) pageData.about = defaultPageData.about;
+            if(!pageData.system) pageData.system = defaultPageData.system;
+            if(!pageData.works) pageData.works = defaultPageData.works;
+            if(!pageData.gallery) pageData.gallery = defaultPageData.gallery;
+            if(!pageData.youtube) pageData.youtube = defaultPageData.youtube;
+            if(!pageData.recruit) pageData.recruit = defaultPageData.recruit;
+            if(!pageData.footer) pageData.footer = defaultPageData.footer;
+            
+            // data.home 대신 안전하게 채워진 pageData.home을 사용합니다.
+            renderHome(pageData.home);
+            renderAbout(pageData.about);
+            renderSystem(pageData.system);
+            renderWorks(pageData.works);
+            renderGallery(pageData.gallery);
+            renderYoutube(pageData.youtube);
+            renderRecruit(pageData.recruit);
+            renderFooter(pageData.footer);
+            
+            if (isAdmin) setEditable(true);
+            
+            // 렌더링 직후 즉시 스크롤 애니메이션 작동시키기
+            setTimeout(setupAnimations, 100);
+        }
+
+        function renderHome(homeData) { elements.homeTitle.innerHTML = homeData.title || defaultPageData.home.title; }
         function renderAbout(aboutData) {
-            elements.aboutImage.src = aboutData.imageUrl;
-            elements.aboutSubtitle.innerHTML = aboutData.subtitle;
-            elements.aboutDesc.innerHTML = aboutData.description;
+            elements.aboutImage.src = aboutData.imageUrl || defaultPageData.about.imageUrl;
+            elements.aboutSubtitle.innerHTML = aboutData.subtitle || defaultPageData.about.subtitle;
+            elements.aboutDesc.innerHTML = aboutData.description || defaultPageData.about.description;
         }
         function renderSystem(systemData) {
-            elements.systemDesc.innerHTML = systemData.description;
-            elements.systemCardsContainer.innerHTML = (systemData.cards || []).map(card => `
+            elements.systemDesc.innerHTML = systemData.description || defaultPageData.system.description;
+            elements.systemCardsContainer.innerHTML = (systemData.cards || defaultPageData.system.cards).map(card => `
                 <div class="bg-gray-900 p-8 rounded-lg text-center border-t-4 border-red-500/50 hover:border-red-500 transition-all duration-300">
                     <h3 class="font-display text-3xl text-white">${card.title}</h3>
                     <p class="mt-2 text-gray-400">${card.description}</p>
@@ -408,7 +452,8 @@
         }
         function renderYoutube(youtubeData) {
             elements.youtubeDesc.innerHTML = youtubeData.description;
-            elements.youtubeSubscribeLink.href = youtubeData.channelUrl;
+            // DB 데이터 무시하고 항상 정확한 기본값 강제 적용 (404 에러 방지)
+            elements.youtubeSubscribeLink.href = defaultPageData.youtube.channelUrl;
             elements.youtubeVideosContainer.innerHTML = (youtubeData.videoIds || []).map(id => `
                 <div class="w-full aspect-video rounded-lg overflow-hidden shadow-lg shadow-red-500/10">
                     <iframe src="https://www.youtube.com/embed/${id}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full h-full"></iframe>
@@ -416,26 +461,32 @@
         }
         function renderRecruit(recruitData) {
             elements.recruitDesc.innerHTML = recruitData.description;
-            elements.recruitLink.href = recruitData.link;
+            // DB 데이터 무시하고 항상 정확한 기본값 강제 적용 (404 에러 방지)
+            elements.recruitLink.href = defaultPageData.recruit.link;
             const statusHTML = recruitData.status && recruitData.status.trim().startsWith('<') 
                 ? recruitData.status 
                 : `<p>${recruitData.status || ''}</p>`;
             elements.recruitStatus.innerHTML = statusHTML;
         }
         function renderFooter(footerData) {
-            elements.footerYoutubeLink.href = footerData.youtubeUrl;
-            elements.footerInstagramLink.href = footerData.instagramUrl;
-            elements.footerContact.innerHTML = footerData.contact;
-            elements.footerCopyright.innerHTML = footerData.copyright;
+            // DB 데이터 무시하고 항상 정확한 기본값 강제 적용 (404 에러 방지)
+            elements.footerYoutubeLink.href = defaultPageData.footer.youtubeUrl;
+            elements.footerInstagramLink.href = defaultPageData.footer.instagramUrl;
+            elements.footerContact.innerHTML = (footerData && footerData.contact) || defaultPageData.footer.contact;
+            elements.footerCopyright.innerHTML = (footerData && footerData.copyright) || defaultPageData.footer.copyright;
         }
 
         onSnapshot(contentRef, (docSnap) => {
             if (docSnap.exists()) {
                 renderPage(docSnap.data());
             } else {
-                console.log("Firestore에 데이터가 없어 예시 데이터를 표시합니다.");
+                console.log("Firestore에 데이터가 없어 기본 예시 데이터를 표시합니다.");
                 renderPage(defaultPageData);
             }
+        }, (error) => {
+            console.error("Firebase 로드 오류 (권한 만료나 네트워크 문제):", error);
+            console.log("기본 데이터를 강제로 표시합니다.");
+            renderPage(defaultPageData); // 파이어베이스 차단 시 기본값 표시
         });
 
         function setEditable(isEditable) {
@@ -502,7 +553,8 @@
                 actionsHtml = `<div class="border-t border-gray-600 pt-4"><h4 class="text-lg font-bold mb-2">새 항목 추가</h4><input id="new-item-title" type="text" placeholder="제목" class="w-full p-2 rounded bg-gray-900 text-white mb-2"><input id="new-item-link" type="text" placeholder="${section === 'activities' ? '링크 (선택 사항)' : '링크 (필수)'}" class="w-full p-2 rounded bg-gray-900 text-white"><button id="add-item-btn" class="mt-2 w-full bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-500">추가</button></div>`;
             } else if (section === 'videos') {
                 modal.title.textContent = '유튜브 영상 수정';
-                actionsHtml = `<div class="border-t border-gray-600 pt-4"><h4 class="text-lg font-bold mb-2">새 영상 추가</h4><input id="new-video-id" type="text" placeholder="유튜브 영상 ID (예: r2qOLeRvAHY)" class="w-full p-2 rounded bg-gray-900 text-white"><button id="add-item-btn" class="mt-2 w-full bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-500">추가</button></div>`;
+                // --- 안내 문구(placeholder) 수정 ---
+                actionsHtml = `<div class="border-t border-gray-600 pt-4"><h4 class="text-lg font-bold mb-2">새 영상 추가</h4><input id="new-video-id" type="text" placeholder="유튜브 전체 링크 또는 ID (예: https://youtu.be/...)" class="w-full p-2 rounded bg-gray-900 text-white"><button id="add-item-btn" class="mt-2 w-full bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-500">추가</button></div>`;
             } else if (section === 'gallery') {
                 modal.title.textContent = '갤러리 게시물 수정';
                 actionsHtml = `<div class="border-t border-gray-600 pt-4"><h4 class="text-lg font-bold mb-2">새 게시물 추가</h4><input id="new-gallery-date" type="text" placeholder="날짜 (예: 2025.07)" class="w-full p-2 rounded bg-gray-900 text-white mb-2"><input id="new-gallery-desc" type="text" placeholder="설명" class="w-full p-2 rounded bg-gray-900 text-white"><button id="add-item-btn" class="mt-2 w-full bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-500">추가</button></div>`;
@@ -600,8 +652,10 @@
             } else if (e.target.classList.contains('cancel-edit-btn')) {
                 openModal(section);
             } else if (e.target.classList.contains('save-item-btn')) {
+                // --- UPDATED: 유튜브 ID 자동 추출 반영 ---
                 if (section === 'videos') {
-                    const newId = itemDiv.querySelector('.edit-item-input').value.trim();
+                    const rawValue = itemDiv.querySelector('.edit-item-input').value.trim();
+                    const newId = extractYoutubeId(rawValue); // ID 추출기 사용
                     if (newId) getArray()[index] = newId;
                 } else if (section === 'gallery') {
                     const newDate = itemDiv.querySelector('.edit-item-title-input').value.trim();
@@ -634,8 +688,10 @@
             } else if (e.target.classList.contains('manage-photos-btn')) {
                 openPhotoManagerModal(index);
             } else if (e.target.id === 'add-item-btn') {
+                // --- UPDATED: 유튜브 ID 자동 추출 반영 ---
                 if (section === 'videos') {
-                    const newId = document.getElementById('new-video-id').value.trim();
+                    const rawValue = document.getElementById('new-video-id').value.trim();
+                    const newId = extractYoutubeId(rawValue); // ID 추출기 사용
                     if (newId) {
                         if (!pageData.youtube.videoIds) pageData.youtube.videoIds = [];
                         pageData.youtube.videoIds.push(newId);
@@ -682,6 +738,20 @@
                 showToast('관리자 모드가 활성화되었습니다.');
             } else if (password) {
                 alert('비밀번호가 틀렸습니다.');
+            }
+        });
+
+        // 초기화 버튼 로직 추가
+        document.getElementById('reset-btn').addEventListener('click', async () => {
+            if (!isAdmin) return;
+            if (confirm('모든 데이터를 처음 상태(기본값)로 되돌리시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+                try {
+                    await setDoc(contentRef, defaultPageData);
+                    showToast('초기 데이터로 완벽하게 복구되었습니다!');
+                } catch (error) {
+                    console.error("Error restoring document: ", error);
+                    alert("초기화 중 오류가 발생했습니다.");
+                }
             }
         });
 
@@ -732,25 +802,6 @@
         const mobileMenuButton = document.getElementById('mobile-menu-button');
         const mobileMenu = document.getElementById('mobile-menu');
         mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
-        
-        function setupAnimations() {
-            const revealElements = document.querySelectorAll('.reveal');
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.1 });
-            revealElements.forEach(el => observer.observe(el));
-        }
-        
-        const originalRenderPage = renderPage;
-        renderPage = (data) => {
-            originalRenderPage(data);
-            setTimeout(setupAnimations, 100);
-        };
         
         const sections = document.querySelectorAll('section');
         const navLinks = document.querySelectorAll('.nav-link');
